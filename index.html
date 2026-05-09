@@ -3,31 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PHE v0.0.3</title>
+    <title>PHE v0.0.4</title>
     <style>
         body { margin: 0; background: #000; color: #fff; font-family: sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-        #security-warning { display: none; background: #c00; padding: 20px; text-align: center; position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; }
         #init-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; box-sizing: border-box; }
         #start-btn { padding: 15px 40px; font-size: 20px; background: #007bff; color: #fff; border: none; border-radius: 8px; cursor: pointer; margin-top: 20px; font-weight: bold; }
         #anchor-guide { position: absolute; top: 20px; left: 20px; width: 150px; height: 70px; border: 2px dashed #f00; color: #f00; font-size: 11px; padding: 5px; pointer-events: none; }
-        #shutter { position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); width: 75px; height: 75px; border-radius: 50%; border: 5px solid #fff; background: rgba(255,255,255,0.2); }
-        #results { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; display: none; z-index: 500; padding: 20px; box-sizing: border-box; overflow-y: auto; }
-        .log { font-family: monospace; font-size: 12px; color: #0f0; background: #111; padding: 10px; border-radius: 4px; margin: 10px 0; border-left: 3px solid #0f0; }
+        #shutter { position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); width: 75px; height: 75px; border-radius: 50%; border: 5px solid #fff; background: rgba(255,255,255,0.2); z-index: 60; }
+        #results { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #05050a; display: none; z-index: 500; padding: 20px; box-sizing: border-box; overflow-y: auto; }
+        .log { font-family: monospace; font-size: 11px; color: #0f0; background: #111; padding: 10px; border-radius: 4px; margin: 10px 0; border-left: 3px solid #0f0; }
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { text-align: left; padding: 10px; border-bottom: 1px solid #333; }
-        .close-btn { background: #444; color: #fff; border: none; padding: 8px 16px; border-radius: 4px; float: right; }
+        th, td { text-align: left; padding: 10px; border-bottom: 1px solid #222; }
+        .confidence-high { color: #0f0; font-weight: bold; }
+        .close-btn { background: #333; color: #fff; border: none; padding: 10px 20px; border-radius: 4px; float: right; cursor: pointer; }
+        .pill { background: #060; padding: 2px 6px; border-radius: 10px; font-size: 10px; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <div id="security-warning">
-        <b>SECURITY LOCK:</b> Chrome blocks cameras on <i>file://</i> links.<br>
-        Host this on <b>HTTPS</b> or use a <b>Local Server</b>.
-    </div>
-
     <div id="init-layer">
-        <h2>🦅 PROJECT HAWK EYE</h2>
-        <p id="context-msg">Checking system security context...</p>
+        <h2>🦅 PROJECT HAWK EYE <small>v0.0.4</small></h2>
+        <p>Targeting WARP "Available" Pills</p>
         <button id="start-btn">IGNITION</button>
     </div>
 
@@ -36,11 +32,11 @@
     <button id="shutter"></button>
 
     <div id="results">
-        <button class="close-btn" onclick="location.reload()">RELOAD [X]</button>
-        <h3>🦅 PHE ANALYSIS</h3>
-        <div id="status-log" class="log">Waiting...</div>
+        <button class="close-btn" onclick="location.reload()">RESCAN [X]</button>
+        <h3>🦅 PHE TABLET ANALYSIS</h3>
+        <div id="status-log" class="log">Waiting for capture...</div>
         <table>
-            <thead><tr><th>Device</th><th>Qty</th></tr></thead>
+            <thead><tr><th>Device Model</th><th>Status</th><th>Confidence</th></tr></thead>
             <tbody id="data-body"></tbody>
         </table>
     </div>
@@ -54,57 +50,42 @@
         const statusLog = document.getElementById('status-log');
         const dataBody = document.getElementById('data-body');
         const canvas = document.getElementById('hidden-canvas');
-        const contextMsg = document.getElementById('context-msg');
 
-        const API_KEY = 'ENTER_YOUR_KEY';
+        const API_KEY = 'YOUR_OCR_SPACE_KEY';
         const ANCHOR = 'inventory';
-
-        // Check if Chrome is going to be a pain
-        if (!window.isSecureContext && location.hostname !== "localhost") {
-            document.getElementById('security-warning').style.display = 'block';
-            contextMsg.innerHTML = "❌ INSECURE CONTEXT (file://)";
-            contextMsg.style.color = "#f00";
-        } else {
-            contextMsg.innerHTML = "✅ SECURE CONTEXT READY";
-            contextMsg.style.color = "#0f0";
-        }
+        
+        // v0.0.4 Session memory for voting
+        let sessionHistory = {};
 
         startBtn.onclick = async () => {
-            const configs = [
-                { video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } } },
-                { video: { facingMode: 'environment', width: { ideal: 1280 } } },
-                { video: { facingMode: 'environment' } },
-                { video: true } // Absolute fallback if hardware is picky
-            ];
-
-            for (let cfg of configs) {
-                try {
-                    video.srcObject = await navigator.mediaDevices.getUserMedia(cfg);
-                    initLayer.style.display = 'none';
-                    return;
-                } catch (e) {
-                    console.warn("Config failed:", e.name);
-                    statusLog.innerText = `DIAGNOSTIC: ${e.name} - ${e.message}`;
-                }
+            try {
+                video.srcObject = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: 'environment', width: { ideal: 1920 } } 
+                });
+                initLayer.style.display = 'none';
+            } catch (e) {
+                alert("Security block or hardware failure. Use HTTPS/Localhost.");
             }
-            alert(`FAIL: ${statusLog.innerText}\n\nYou must run this via a local server (localhost) or HTTPS.`);
         };
 
         document.getElementById('shutter').onclick = async () => {
             document.getElementById('results').style.display = 'block';
-            statusLog.innerText = ">>> SCANNING PIXELS...";
+            statusLog.innerText = ">>> DEFUSING MOIRÉ LINES & CAPTURING...";
             
             const ctx = canvas.getContext('2d');
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
-            ctx.filter = 'contrast(1.4) brightness(1.1) grayscale(0.1)';
+            
+            // v0.0.4 Anti-glare pipeline
+            ctx.filter = 'grayscale(1) contrast(1.6) brightness(1.1) sharpen(1.0)';
             ctx.drawImage(video, 0, 0);
 
-            const base64 = canvas.toDataURL('image/jpeg', 0.85);
+            const base64 = canvas.toDataURL('image/jpeg', 0.80);
             const fd = new FormData();
             fd.append('base64Image', base64);
             fd.append('apikey', API_KEY);
-            fd.append('OCREngine', '2');
+            fd.append('OCREngine', '2'); // Best for screen text
+            fd.append('isOverlayRequired', 'true'); // Required for Spatial Row Grouping
 
             try {
                 const res = await fetch('https://api.ocr.space/parse/image', { method: 'POST', body: fd });
@@ -113,30 +94,53 @@
                 if (json.IsErroredOnProcessing) {
                     statusLog.innerText = "SERVER ERROR: " + json.ErrorMessage;
                 } else {
-                    parse(json.ParsedResults[0].ParsedText);
+                    parseSpatial(json.ParsedResults[0]);
                 }
             } catch (err) {
-                statusLog.innerText = "CONNECTION KILLED: " + err.message;
+                statusLog.innerText = "NETWORK KILLED: " + err.message;
             }
         };
 
-        function parse(raw) {
-            const lines = raw.split('\n').map(s => s.trim()).filter(s => s.length > 2);
+        function parseSpatial(result) {
+            const lines = result.TextOverlay.Lines;
             let count = 0;
             let anchorHit = false;
-            dataBody.innerHTML = '';
+            
+            // v0.0.4 Spatial Grouping Logic
+            // We group words by their Top coordinate to find "Rows"
+            const rows = {};
+            lines.forEach(line => {
+                const top = Math.round(line.Words[0].Top / 10) * 10; // 10px tolerance
+                if (!rows[top]) rows[top] = "";
+                rows[top] += " " + line.LineText;
+                if (line.LineText.toLowerCase().includes(ANCHOR)) anchorHit = true;
+            });
 
-            lines.forEach(l => {
-                if (l.toLowerCase().includes(ANCHOR)) anchorHit = true;
-                const match = l.match(/\d+$/);
-                if (match) {
-                    const name = l.replace(match[0], '').trim() || "Unknown Device";
-                    dataBody.innerHTML += `<tr><td>${name}</td><td>${match[0]}</td></tr>`;
-                    count++;
+            Object.values(rows).forEach(rowText => {
+                // v0.0.4 WARP Pill Regex: Look for the "Available" string specifically
+                const pillMatch = rowText.match(/(\d+)\s+Available/i);
+                if (pillMatch) {
+                    const qty = pillMatch[1];
+                    // Clean the name by removing the status pill text
+                    const name = rowText.replace(pillMatch[0], '').replace(ANCHOR, '').trim();
+                    
+                    if (name.length > 3) {
+                        // Voting Logic
+                        sessionHistory[name] = (sessionHistory[name] || 0) + 1;
+                        const isHighConf = sessionHistory[name] > 1;
+                        
+                        const row = `<tr>
+                            <td>${name}</td>
+                            <td><span class="pill">${qty} Available</span></td>
+                            <td class="${isHighConf ? 'confidence-high' : ''}">${isHighConf ? 'VOTED' : 'NEW'}</td>
+                        </tr>`;
+                        dataBody.innerHTML += row;
+                        count++;
+                    }
                 }
             });
 
-            statusLog.innerText = `RESULT: [ANCHOR: ${anchorHit ? 'YES' : 'NO'}] | [ITEMS: ${count}]`;
+            statusLog.innerText = `RESULT: [ANCHOR: ${anchorHit ? 'YES' : 'NO'}] | [PILLS FOUND: ${count}]`;
         }
     </script>
 </body>
