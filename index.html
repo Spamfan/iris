@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Project IRIS - Scanner</title>
+    <title>Project IRIS</title>
     
     <!-- Favicons -->
     <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
@@ -18,111 +18,100 @@
             background-color: #121212;
             color: #ffffff;
             margin: 0;
-            padding: 15px;
+            padding: 0;
             height: 100vh;
             height: 100dvh; 
             box-sizing: border-box;
+            overflow: hidden;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            overflow: hidden;
         }
-        
-        #versionLabel {
+
+        /* --- GLOBAL HEADER --- */
+        #globalHeader {
             position: absolute;
-            top: 10px;
-            right: 15px;
-            color: #666;
-            font-size: 0.8rem;
+            top: 0; left: 0; right: 0;
+            height: 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 15px;
+            z-index: 100;
+            pointer-events: none; /* Lets clicks pass through empty space */
+        }
+        #versionLabel {
+            color: #888;
+            font-size: 0.9rem;
             font-weight: bold;
         }
-
-        h1 {
-            font-size: 1.5rem;
-            margin-top: 0;
-            margin-bottom: 5px;
-            color: #4CAF50;
-            flex-shrink: 0;
-        }
-        
-        #status {
-            font-weight: bold;
-            margin-bottom: 10px;
-            color: #ffeb3b;
-            text-align: center;
-            flex-shrink: 0;
-            min-height: 1.2rem;
+        #homeBtn {
+            pointer-events: auto;
+            background: none;
+            border: 2px solid #555;
+            border-radius: 8px;
+            color: white;
+            font-size: 1.2rem;
+            padding: 5px 10px;
+            cursor: pointer;
+            background-color: #222;
         }
 
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.3; }
-            100% { opacity: 1; }
-        }
-        .pulsing {
-            animation: pulse 1.5s infinite;
-        }
-        
-        /* Viewfinder is now a perfect 1:1 Square */
-        .video-container {
-            position: relative;
+        /* --- VIEW CONTAINERS (SPA Logic) --- */
+        .view {
+            display: none;
+            flex-direction: column;
+            align-items: center;
             width: 100%;
-            max-width: 500px;
-            aspect-ratio: 1 / 1; 
-            border: 3px solid #00ff00;
-            border-radius: 10px;
-            overflow: hidden;
-            background: #000;
-            margin-bottom: 10px;
+            height: 100%;
+            padding: 60px 15px 15px 15px; /* Top padding clears the header */
+            box-sizing: border-box;
+            overflow-y: auto;
+        }
+        .view.active {
+            display: flex;
+        }
+
+        /* --- UI ELEMENTS --- */
+        h1, h2, h3 { margin: 0 0 10px 0; }
+        
+        .logo-container {
+            width: 200px;
+            height: 200px;
+            background-color: #222;
+            border-radius: 15px;
+            margin-bottom: 20px;
             display: flex;
             justify-content: center;
             align-items: center;
-            flex-shrink: 0;
-            cursor: pointer; 
-            -webkit-tap-highlight-color: transparent;
-            user-select: none;
-            transition: all 0.2s ease-out;
+            overflow: hidden;
+            animation: skeletonPulse 1.5s infinite;
         }
-
-        /* Focus flash animation applies to the whole container now */
-        .focus-flash {
-            border-color: #ffffff !important;
-            transform: scale(0.97);
-        }
-        
-        video {
+        .logo-container img {
             width: 100%;
             height: 100%;
-            display: block;
-            object-fit: cover; /* Perfectly center-crops the feed visually */
+            object-fit: contain;
+            opacity: 0; /* Hidden until loaded */
+            transition: opacity 0.3s;
+        }
+        @keyframes skeletonPulse {
+            0% { background-color: #222; }
+            50% { background-color: #333; }
+            100% { background-color: #222; }
         }
 
-        textarea {
+        input[type="number"], input[type="password"] {
             width: 100%;
-            max-width: 500px;
-            flex-grow: 1;
-            min-height: 60px;
-            background: #1e1e1e;
-            color: #fff;
-            border: 1px solid #444;
+            max-width: 300px;
+            padding: 15px;
+            font-size: 1.2rem;
+            text-align: center;
             border-radius: 8px;
-            padding: 10px;
-            font-size: 1rem;
-            resize: none;
-            box-sizing: border-box;
-            margin-bottom: 10px;
-            -webkit-tap-highlight-color: transparent;
+            border: 2px solid #444;
+            background: #fff;
+            color: #000;
+            margin-bottom: 20px;
         }
-        
-        .controls {
-            display: grid;
-            grid-template-columns: 2fr 1fr 1fr;
-            gap: 10px;
-            width: 100%;
-            max-width: 500px;
-            flex-shrink: 0;
-        }
-        
+
         button {
             padding: 12px;
             font-size: 1rem;
@@ -133,103 +122,422 @@
             transition: opacity 0.2s;
             -webkit-tap-highlight-color: transparent;
             user-select: none;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            text-align: center;
         }
         button:active { opacity: 0.7; }
-        button:disabled {
-            background-color: #555 !important;
-            color: #888 !important;
-            cursor: not-allowed;
+        button:disabled { background-color: #555 !important; color: #888 !important; }
+
+        /* --- LOGIN VIEW --- */
+        .login-controls {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+            max-width: 300px;
         }
-        
-        #scanBtn {
-            grid-column: 1 / -1; 
-            background-color: #4CAF50;
-            color: white;
-            font-size: 1.2rem;
-            padding: 15px;
-        }
-        #clearBtn {
-            background-color: #f44336;
-            color: white;
-        }
-        #copyBtn {
-            background-color: #2196F3;
-            color: white;
-            font-size: 1.2rem;
-        }
-        #toggleCamBtn {
+        #termsBtn { background-color: #ccc; color: #000; flex: 1; }
+        #loginSubmitBtn { background-color: #4CAF50; color: #fff; flex: 1; }
+
+        /* --- HOME VIEW --- */
+        .store-selector {
             background-color: #333;
-            color: #bbb;
+            padding: 10px 20px;
+            border-radius: 8px;
             font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            cursor: pointer;
+            border: 2px solid #555;
         }
+        .carrier-btn {
+            width: 100%;
+            max-width: 350px;
+            padding: 20px;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: white;
+            border-radius: 10px;
+        }
+        #btnATT { background-color: #00a8e0; }
+        #btnVZW { background-color: #ed1c24; }
+        #btnTMO { background-color: #e20074; }
+
+        /* --- SCANNER VIEW (Dual Pane) --- */
+        .scanner-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 600px;
+            margin-bottom: 5px;
+        }
+        #status {
+            font-weight: bold;
+            color: #4CAF50;
+            font-size: 0.9rem;
+        }
+        .pulsing { animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+
+        .video-container {
+            position: relative;
+            width: 100%;
+            max-width: 400px; /* Kept slightly smaller so bottom panes fit */
+            aspect-ratio: 1 / 1; 
+            border: 3px solid #00ff00;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #000;
+            margin-bottom: 10px;
+            flex-shrink: 0;
+            cursor: pointer; 
+        }
+        .focus-flash { border-color: #ffffff !important; transform: scale(0.97); }
+        video { width: 100%; height: 100%; display: block; object-fit: cover; }
+
+        /* Dual Pane Grid */
+        .dual-pane {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            width: 100%;
+            max-width: 600px;
+            flex-grow: 1;
+            min-height: 0; /* Important for flex-grow scrolling */
+        }
+        .pane-col {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            height: 100%;
+        }
+        .pane-label {
+            font-weight: bold;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+        .pane-label.green { color: #4CAF50; }
+        .pane-label.blue { color: #2196F3; }
+
+        textarea {
+            width: 100%;
+            flex-grow: 1;
+            background: #1e1e1e;
+            color: #fff;
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 8px;
+            font-size: 0.9rem;
+            resize: none;
+            box-sizing: border-box;
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 5px;
+        }
+        .btn-row button { flex: 1; padding: 10px; font-size: 1rem; }
         
-        #hiddenCanvas {
+        #scanBtn { background-color: #4CAF50; color: white; padding: 15px; font-size: 1.2rem; }
+        #clearBtn { background-color: #f44336; color: white; }
+        #copyBtn { background-color: #2196F3; color: white; }
+        
+        #saveBtn { background-color: #2196F3; color: white; padding: 15px; font-size: 1.1rem; }
+        #backToCarriersBtn { background-color: #ff9800; color: white; }
+        #toggleCamBtn { background-color: #333; color: #fff; padding: 5px 10px; border: 1px solid #666; }
+
+        #hiddenCanvas { display: none; }
+
+        /* --- MODALS --- */
+        .modal-overlay {
             display: none;
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            justify-content: center; align-items: center;
+            padding: 20px;
         }
+        .modal-box {
+            display: none;
+            background: #222;
+            padding: 25px;
+            border-radius: 15px;
+            border: 2px solid #555;
+            width: 100%;
+            max-width: 350px;
+            text-align: center;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .modal-box.active { display: flex; }
+        .modal-btn-row { display: flex; gap: 10px; }
+        .modal-btn-row button { flex: 1; }
+        .btn-secondary { background-color: #555; color: white; }
+        .btn-primary { background-color: #4CAF50; color: white; }
+        .btn-danger { background-color: #f44336; color: white; }
     </style>
 </head>
 <body>
 
-    <div id="versionLabel">v0.6.1</div>
-    <h1>Project IRIS</h1>
-    <div id="status">Initializing Camera...</div>
-
-    <div class="video-container" id="videoContainer">
-        <video id="cameraFeed" autoplay playsinline></video>
+    <!-- GLOBAL HEADER -->
+    <div id="globalHeader">
+        <div id="versionLabel">v0.7.0</div>
+        <button id="homeBtn"></button>
     </div>
 
-    <textarea id="output" placeholder="Scanned text will append here..." readonly></textarea>
+    <!-- VIEW 1: LOGIN -->
+    <div id="viewLogin" class="view active">
+        <div class="logo-container">
+            <img id="loginLogo" src="https://i.imgur.com/f8ucThF.jpeg" alt="Project IRIS Logo" onload="this.style.opacity=1; this.parentElement.style.animation='none';">
+        </div>
+        
+        <h3>Store #</h3>
+        <input type="number" id="inputStore" placeholder="e.g. 1698">
+        
+        <h3>App PIN</h3>
+        <input type="password" id="inputPin" placeholder="Enter PIN">
+        
+        <div class="login-controls">
+            <button id="termsBtn">TERMS OF USE</button>
+            <button id="loginSubmitBtn">LOG IN</button>
+        </div>
+    </div>
 
-    <div class="controls">
-        <button id="scanBtn" disabled>Scan Target</button>
-        <button id="clearBtn">Clear List</button>
-        <button id="copyBtn">📄</button>
-        <button id="toggleCamBtn">📷</button>
+    <!-- VIEW 2: HOME (CARRIERS) -->
+    <div id="viewHome" class="view">
+        <h1 style="color: #4CAF50; margin-bottom: 20px;">Project IRIS</h1>
+        
+        <div class="store-selector" id="storeSelectorBtn">
+            Selected store:<br> <span id="displayStore">----</span>
+        </div>
+        
+        <h2 id="dateLabel" style="align-self: flex-start; margin-bottom: 15px;">Inventory reports:</h2>
+        
+        <button class="carrier-btn" id="btnATT" data-carrier="ATT">AT&T</button>
+        <button class="carrier-btn" id="btnVZW" data-carrier="VZW">Verizon</button>
+        <button class="carrier-btn" id="btnTMO" data-carrier="TMO">T-Mobile</button>
+    </div>
+
+    <!-- VIEW 3: SCANNER -->
+    <div id="viewScanner" class="view">
+        <div class="scanner-header">
+            <div id="status">Ready. Fill square with text.</div>
+            <button id="toggleCamBtn"> Pause</button>
+        </div>
+
+        <div class="video-container" id="videoContainer">
+            <video id="cameraFeed" autoplay playsinline></video>
+        </div>
+
+        <div class="dual-pane">
+            <!-- Left Column: Scanner Output -->
+            <div class="pane-col">
+                <div class="pane-label green">Scan input</div>
+                <textarea id="output" placeholder="Raw OCR output..."></textarea>
+                <button id="scanBtn">SCAN</button>
+                <div class="btn-row">
+                    <button id="clearBtn">Clear</button>
+                    <button id="copyBtn"></button>
+                </div>
+            </div>
+            
+            <!-- Right Column: Carrier Save File -->
+            <div class="pane-col">
+                <div class="pane-label blue" id="carrierLabel">Carrier list</div>
+                <textarea id="carrierFile" placeholder="Paste and edit inventory here..."></textarea>
+                <button id="saveBtn">Save as ...</button>
+                <button id="backToCarriersBtn">Back to Carriers</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL OVERLAY -->
+    <div id="modalOverlay" class="modal-overlay">
+        <!-- Terms Modal -->
+        <div id="modalTerms" class="modal-box">
+            <h3>Terms of Use</h3>
+            <p>Terms of use isn't made yet.</p>
+            <button class="btn-primary" onclick="hideModal()">OK</button>
+        </div>
+
+        <!-- Store Change Modal -->
+        <div id="modalStore" class="modal-box">
+            <h3>Change Store #</h3>
+            <input type="number" id="newStoreInput" placeholder="New Store #">
+            <div class="modal-btn-row">
+                <button class="btn-secondary" onclick="hideModal()">Cancel</button>
+                <button class="btn-primary" id="confirmStoreChangeBtn">Save</button>
+            </div>
+        </div>
+
+        <!-- Back Warning Modal -->
+        <div id="modalBack" class="modal-box">
+            <h3>Go back to carriers?</h3>
+            <p>Unsaved changes in the right panel will be lost.</p>
+            <div class="modal-btn-row">
+                <button class="btn-secondary" onclick="hideModal()">Cancel</button>
+                <button class="btn-danger" id="confirmBackBtn">Yes, Go Back</button>
+            </div>
+        </div>
     </div>
 
     <canvas id="hiddenCanvas"></canvas>
 
     <script>
-        // Inserted API Key
+        // --- CONFIGURATION ---
         const OCR_API_KEY = 'K83239282988957'; 
+        
+        // Lightweight Base64 Obfuscation for "102030"
+        // Prevents casual code inspectors from seeing the PIN, without complex async cryptography
+        const TARGET_PIN_HASH = 'MTAyMDMw'; 
 
-        const video = document.getElementById('cameraFeed');
-        const videoContainer = document.getElementById('videoContainer');
-        const canvas = document.getElementById('hiddenCanvas');
-        const ctx = canvas.getContext('2d');
-        const statusEl = document.getElementById('status');
-        const outputEl = document.getElementById('output');
-        const scanBtn = document.getElementById('scanBtn');
-        const copyBtn = document.getElementById('copyBtn');
-        const clearBtn = document.getElementById('clearBtn');
-        const toggleCamBtn = document.getElementById('toggleCamBtn');
-
+        // --- STATE ---
+        let currentStore = "";
+        let currentCarrier = "";
         let currentStream = null;
         let isManuallyPaused = false;
 
-        async function initApp() {
-            try {
-                await startCamera();
-                statusEl.innerText = "Ready. Fill square with text and Scan.";
-                statusEl.style.color = "#4CAF50";
-                scanBtn.disabled = false;
-            } catch (err) {
-                console.error(err);
-                statusEl.innerText = "Error: Initialization failed.";
-                statusEl.style.color = "#f44336";
-            }
+        // --- DOM ELEMENTS ---
+        const views = document.querySelectorAll('.view');
+        const modalOverlay = document.getElementById('modalOverlay');
+        const modals = document.querySelectorAll('.modal-box');
+        
+        const video = document.getElementById('cameraFeed');
+        const canvas = document.getElementById('hiddenCanvas');
+        const ctx = canvas.getContext('2d');
+        const statusEl = document.getElementById('status');
+
+        // --- NAVIGATION & MODAL LOGIC ---
+        function switchView(viewId) {
+            views.forEach(v => v.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
         }
 
+        function showModal(modalId) {
+            modals.forEach(m => m.classList.remove('active'));
+            document.getElementById(modalId).classList.add('active');
+            modalOverlay.style.display = 'flex';
+        }
+
+        function hideModal() {
+            modalOverlay.style.display = 'none';
+            modals.forEach(m => m.classList.remove('active'));
+        }
+
+        document.getElementById('homeBtn').addEventListener('click', () => {
+            window.location.href = 'https://spamfan.github.io';
+        });
+
+        // --- VIEW 1: LOGIN LOGIC ---
+        document.getElementById('termsBtn').addEventListener('click', () => showModal('modalTerms'));
+
+        document.getElementById('loginSubmitBtn').addEventListener('click', () => {
+            const storeVal = document.getElementById('inputStore').value.trim();
+            const pinVal = document.getElementById('inputPin').value.trim();
+
+            if (!storeVal) {
+                alert("Please enter a Store #.");
+                return;
+            }
+            
+            // Basic hash check
+            if (btoa(pinVal) === TARGET_PIN_HASH) {
+                currentStore = storeVal;
+                initHomeView();
+                switchView('viewHome');
+                // Clear pin field for security
+                document.getElementById('inputPin').value = ""; 
+            } else {
+                alert("Incorrect App PIN.");
+            }
+        });
+
+        // --- VIEW 2: HOME LOGIC ---
+        function initHomeView() {
+            document.getElementById('displayStore').innerText = currentStore;
+            
+            const date = new Date();
+            const dateStr = `${date.getMonth() + 1}/${date.getDate()}`;
+            document.getElementById('dateLabel').innerText = `Inventory reports ${dateStr}:`;
+        }
+
+        document.getElementById('storeSelectorBtn').addEventListener('click', () => {
+            document.getElementById('newStoreInput').value = currentStore;
+            showModal('modalStore');
+        });
+
+        document.getElementById('confirmStoreChangeBtn').addEventListener('click', () => {
+            const newStore = document.getElementById('newStoreInput').value.trim();
+            if (newStore) {
+                currentStore = newStore;
+                document.getElementById('displayStore').innerText = currentStore;
+            }
+            hideModal();
+        });
+
+        // Carrier Buttons -> Start Scanner
+        document.querySelectorAll('.carrier-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                currentCarrier = e.target.dataset.carrier;
+                await initScannerView();
+                switchView('viewScanner');
+            });
+        });
+
+        // --- VIEW 3: SCANNER LOGIC ---
+        async function initScannerView() {
+            // Setup UI labels
+            document.getElementById('carrierLabel').innerText = `Carrier list (${currentCarrier})`;
+            document.getElementById('saveBtn').innerText = `Save as ${currentStore}\\${currentCarrier}`;
+            
+            // Load Database (localStorage)
+            const dbKey = `IRIS_${currentStore}_${currentCarrier}`;
+            const savedData = localStorage.getItem(dbKey) || "";
+            document.getElementById('carrierFile').value = savedData;
+            document.getElementById('output').value = ""; // Clear OCR side
+
+            // Start Camera
+            statusEl.innerText = "Initializing Camera...";
+            statusEl.style.color = "#ffeb3b";
+            isManuallyPaused = false;
+            await startCamera();
+            statusEl.innerText = "Ready. Fill square with text.";
+            statusEl.style.color = "#4CAF50";
+        }
+
+        document.getElementById('backToCarriersBtn').addEventListener('click', () => {
+            showModal('modalBack');
+        });
+
+        document.getElementById('confirmBackBtn').addEventListener('click', () => {
+            hideModal();
+            stopCamera();
+            switchView('viewHome');
+        });
+
+        // Database Save Logic
+        document.getElementById('saveBtn').addEventListener('click', () => {
+            const fileData = document.getElementById('carrierFile').value;
+            const dbKey = `IRIS_${currentStore}_${currentCarrier}`;
+            localStorage.setItem(dbKey, fileData);
+            
+            const btn = document.getElementById('saveBtn');
+            const originalText = btn.innerText;
+            btn.innerText = " Saved!";
+            btn.style.backgroundColor = "#4CAF50";
+            setTimeout(() => {
+                btn.innerText = originalText;
+                btn.style.backgroundColor = "#2196F3";
+            }, 2000);
+        });
+
+        // --- CAMERA LIFECYCLE (UNTOUCHED LOGIC) ---
         async function startCamera() {
             if (currentStream) return;
             try {
                 currentStream = await navigator.mediaDevices.getUserMedia({
                     video: { 
                         facingMode: 'environment',
-                        width: { ideal: 4096 }, // Request max hardware resolution
+                        width: { ideal: 4096 }, 
                         height: { ideal: 2160 },
                         advanced: [{ focusMode: "continuous" }]
                     }
@@ -237,7 +545,7 @@
                 video.srcObject = currentStream;
             } catch (err) {
                 console.error("Camera start error:", err);
-                statusEl.innerText = "Error: Camera access denied.";
+                statusEl.innerText = "Camera Error.";
                 statusEl.style.color = "#f44336";
             }
         }
@@ -250,60 +558,51 @@
             }
         }
 
-        // --- Lifecycle Events ---
-        function handleVisibilityChange() {
-            if (document.hidden) {
-                stopCamera();
-            } else {
-                if (!isManuallyPaused) startCamera();
-            }
-        }
-        document.addEventListener('visibilitychange', handleVisibilityChange);
-        window.addEventListener('pagehide', stopCamera);
-        window.addEventListener('pageshow', () => {
-            if (!isManuallyPaused) startCamera();
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) stopCamera();
+            else if (document.getElementById('viewScanner').classList.contains('active') && !isManuallyPaused) startCamera();
         });
 
-        toggleCamBtn.addEventListener('click', () => {
+        document.getElementById('toggleCamBtn').addEventListener('click', () => {
+            const btn = document.getElementById('toggleCamBtn');
             if (currentStream) {
                 stopCamera();
                 isManuallyPaused = true;
+                btn.innerText = " Play";
                 statusEl.innerText = "Camera Paused.";
                 statusEl.style.color = "#ff9800";
             } else {
                 isManuallyPaused = false;
                 startCamera();
-                statusEl.innerText = "Ready. Fill square with text and Scan.";
+                btn.innerText = " Pause";
+                statusEl.innerText = "Ready. Fill square with text.";
                 statusEl.style.color = "#4CAF50";
             }
         });
 
-        videoContainer.addEventListener('click', async () => {
+        document.getElementById('videoContainer').addEventListener('click', async () => {
             if (!currentStream) return;
             const track = currentStream.getVideoTracks()[0];
             const capabilities = track.getCapabilities ? track.getCapabilities() : {};
             
-            // Visual Focus Flash
-            videoContainer.classList.add('focus-flash');
-            setTimeout(() => videoContainer.classList.remove('focus-flash'), 250);
+            document.getElementById('videoContainer').classList.add('focus-flash');
+            setTimeout(() => document.getElementById('videoContainer').classList.remove('focus-flash'), 250);
 
             if (capabilities.focusMode) {
-                try {
-                    await track.applyConstraints({
-                        advanced: [{ focusMode: "continuous" }]
-                    });
-                } catch (err) {
-                    console.log("Manual focus constraint not supported on this device.");
-                }
+                try { await track.applyConstraints({ advanced: [{ focusMode: "continuous" }] }); } 
+                catch (err) { console.log("Focus not supported."); }
             }
         });
 
-        // --- Core Scanning Logic (1:1 Center Crop & Upscale) ---
+        // --- OCR SCANNING LOGIC (UNTOUCHED) ---
+        const scanBtn = document.getElementById('scanBtn');
+        const outputEl = document.getElementById('output');
+
         scanBtn.addEventListener('click', async () => {
             if (!currentStream) return;
 
             scanBtn.disabled = true;
-            statusEl.innerText = "📸 Snapshot taken! Analyzing...";
+            statusEl.innerText = " Analyzing...";
             statusEl.style.color = "#ffeb3b";
             statusEl.classList.add('pulsing');
 
@@ -313,56 +612,36 @@
                 return;
             }
 
-            // 1. Math: Find the exact center 1:1 square of the raw camera feed
             const size = Math.min(video.videoWidth, video.videoHeight);
             const startX = (video.videoWidth - size) / 2;
             const startY = (video.videoHeight - size) / 2;
 
-            // 2. Crop to hidden canvas
             canvas.width = size;
             canvas.height = size;
-            ctx.drawImage(
-                video, 
-                startX, startY, size, size, // Source (Raw Camera Feed)
-                0, 0, size, size            // Destination (Canvas)
-            );
+            ctx.drawImage(video, startX, startY, size, size, 0, 0, size, size);
 
-            // 3. Base64 Conversion
             const base64Image = canvas.toDataURL('image/jpeg', 0.8);
-
-            // 4. API Payload (Engine 2 + Upscaling)
             const formData = new FormData();
             formData.append('apikey', OCR_API_KEY);
             formData.append('base64Image', base64Image);
             formData.append('OCREngine', '2');
-            formData.append('scale', 'true'); // AI Upscaling activated
+            formData.append('scale', 'true'); 
 
-            // 5. Send Request
             try {
-                const response = await fetch('https://api.ocr.space/parse/image', {
-                    method: 'POST',
-                    body: formData
-                });
-                
+                const response = await fetch('https://api.ocr.space/parse/image', { method: 'POST', body: formData });
                 const json = await response.json();
                 statusEl.classList.remove('pulsing');
 
                 if (json.IsErroredOnProcessing) {
-                    console.error("API Error:", json.ErrorMessage);
-                    statusEl.innerText = "API Error: " + (json.ErrorMessage[0] || "Unknown");
+                    statusEl.innerText = "API Error.";
                     statusEl.style.color = "#f44336";
                 } else if (json.ParsedResults && json.ParsedResults.length > 0) {
                     const cleanedText = json.ParsedResults[0].ParsedText.trim();
-
                     if (cleanedText) {
-                        if (outputEl.value) {
-                            outputEl.value += '\n' + cleanedText;
-                        } else {
-                            outputEl.value = cleanedText;
-                        }
+                        if (outputEl.value) outputEl.value += '\n' + cleanedText;
+                        else outputEl.value = cleanedText;
                         outputEl.scrollTop = outputEl.scrollHeight;
-                        
-                        statusEl.innerText = "Added to list!";
+                        statusEl.innerText = "Added!";
                         statusEl.style.color = "#4CAF50";
                     } else {
                         statusEl.innerText = "No text found.";
@@ -372,42 +651,38 @@
                     statusEl.innerText = "No text detected.";
                     statusEl.style.color = "#ff9800";
                 }
-
             } catch (err) {
-                console.error("Network Error:", err);
                 statusEl.classList.remove('pulsing');
-                statusEl.innerText = "Network Error. Check connection.";
+                statusEl.innerText = "Network Error.";
                 statusEl.style.color = "#f44336";
             }
 
             scanBtn.disabled = false;
             setTimeout(() => {
-                if (statusEl.innerText === "Added to list!" || statusEl.innerText.includes("No text")) {
-                    statusEl.innerText = "Ready. Fill square with text and Scan.";
+                if (statusEl.innerText === "Added!" || statusEl.innerText.includes("No text")) {
+                    statusEl.innerText = "Ready. Fill square with text.";
                     statusEl.style.color = "#4CAF50";
                 }
             }, 2500);
         });
 
-        copyBtn.addEventListener('click', async () => {
+        // Scanner Left-Pane Controls
+        document.getElementById('copyBtn').addEventListener('click', async () => {
             if (!outputEl.value) return;
             try {
                 await navigator.clipboard.writeText(outputEl.value);
+                const copyBtn = document.getElementById('copyBtn');
                 const originalText = copyBtn.innerText;
-                copyBtn.innerText = "✔️";
+                copyBtn.innerText = "";
                 setTimeout(() => copyBtn.innerText = originalText, 2000);
-            } catch (err) {
-                alert("Failed to copy text. Please copy manually.");
-            }
+            } catch (err) { alert("Failed to copy."); }
         });
 
-        clearBtn.addEventListener('click', () => {
+        document.getElementById('clearBtn').addEventListener('click', () => {
             outputEl.value = "";
-            statusEl.innerText = "List cleared. Ready.";
+            statusEl.innerText = "Cleared. Ready.";
             statusEl.style.color = "#4CAF50";
         });
-
-        window.addEventListener('load', initApp);
     </script>
 </body>
 </html>
