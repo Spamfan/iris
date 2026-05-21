@@ -207,7 +207,7 @@
 
     <!-- GLOBAL HEADER -->
     <div id="globalHeader">
-        <div id="versionLabel">v0.8.0</div>
+        <div id="versionLabel">v0.9.0</div>
         <button id="homeBtn" title="Home">
             <svg class="icon" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
         </button>
@@ -224,7 +224,7 @@
             <input type="number" id="inputStore" placeholder="Enter store number" required>
             
             <h3>App PIN</h3>
-            <input type="password" id="inputPin" placeholder="Enter PIN" required>
+            <input type="number" pattern="[0-9]*" inputmode="numeric" id="inputPin" placeholder="Enter PIN" required style="-webkit-text-security: disc;">
             
             <div class="login-controls">
                 <button type="button" id="termsBtn">TERMS OF USE</button>
@@ -551,7 +551,9 @@
             const formData = new FormData();
             formData.append('apikey', OCR_API_KEY);
             formData.append('base64Image', canvas.toDataURL('image/jpeg', 0.8));
-            formData.append('OCREngine', '2'); formData.append('scale', 'true'); 
+            formData.append('OCREngine', '2'); 
+            formData.append('scale', 'true'); 
+            formData.append('isTable', 'true'); // Forces Horizontal Reading
 
             try {
                 const res = await fetch('https://api.ocr.space/parse/image', { method: 'POST', body: formData });
@@ -559,18 +561,45 @@
                 statusEl.classList.remove('pulsing');
 
                 if (!json.IsErroredOnProcessing && json.ParsedResults && json.ParsedResults.length > 0) {
-                    const text = json.ParsedResults[0].ParsedText.trim();
-                    if (text) {
+                    const rawText = json.ParsedResults[0].ParsedText;
+                    
+                    // --- SMART TABLE PARSER & FILTER ---
+                    const trashList = [
+                        'walmart', 'feedback', 'click any row', 'device model', 
+                        'capacity', 'color', 'availability', 'in stock', 'out of stock', 
+                        'prepaid', 'wireless', 'dashboard', 'cellular', 'deviceonly', 
+                        'total items', 'show in stock', 'select a row'
+                    ];
+                    
+                    const cleanedText = rawText.split('\n')
+                        .map(line => line.trim())
+                        .filter(line => {
+                            if (!line) return false;
+                            const lowerLine = line.toLowerCase();
+                            // If line contains ANY trash word, delete it
+                            return !trashList.some(trash => lowerLine.includes(trash));
+                        })
+                        .map(line => {
+                            // Sanitize: Remove bullets, fix typo 'Avallable'
+                            return line.replace(/•/g, '').replace(/Avallable/gi, 'Available').trim();
+                        })
+                        .filter(line => line.length > 0) // Remove lines that became empty
+                        .join('\n');
+
+                    if (cleanedText) {
                         saveState(); // Save for undo
-                        scannerList.value += (scannerList.value ? '\n' : '') + text;
+                        scannerList.value += (scannerList.value ? '\n' : '') + cleanedText;
                         
                         // Animation & Scroll
                         scannerList.classList.add('flash-green');
                         scannerList.scrollTop = scannerList.scrollHeight;
-                        setTimeout(() => scannerList.classList.remove('flash-green'), 50); // CSS handles the 1s fade out
+                        setTimeout(() => scannerList.classList.remove('flash-green'), 50);
 
                         statusEl.innerText = "Added!"; statusEl.style.color = "#4CAF50";
-                    } else { statusEl.innerText = "No text found."; statusEl.style.color = "#ff9800"; }
+                    } else { 
+                        statusEl.innerText = "Filtered to empty. No valid text."; 
+                        statusEl.style.color = "#ff9800"; 
+                    }
                 } else { statusEl.innerText = "API Error / No text."; statusEl.style.color = "#f44336"; }
             } catch (err) { statusEl.classList.remove('pulsing'); statusEl.innerText = "Network Error."; statusEl.style.color = "#f44336"; }
 
