@@ -8,101 +8,60 @@
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #121212;
-            color: #ffffff;
-            margin: 0;
-            padding: 0;
-            height: 100vh;
-            height: 100dvh; 
-            box-sizing: border-box;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
+            background-color: #121212; color: #ffffff;
+            margin: 0; padding: 0; height: 100vh; height: 100dvh; 
+            box-sizing: border-box; overflow: hidden; display: flex; flex-direction: column;
         }
 
         /* --- GLOBAL SVGs --- */
-        .icon {
-            width: 24px; height: 24px;
-            fill: currentColor;
-            display: inline-block;
-            vertical-align: middle;
-        }
+        .icon { width: 24px; height: 24px; fill: currentColor; display: inline-block; vertical-align: middle; }
+        .icon-sm { width: 16px; height: 16px; fill: currentColor; display: inline-block; vertical-align: middle; }
 
         /* --- GLOBAL HEADER --- */
         #globalHeader {
-            position: absolute;
-            top: 0; left: 0; right: 0;
-            height: 50px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 15px;
-            z-index: 100;
-            pointer-events: none;
+            position: absolute; top: 0; left: 0; right: 0; height: 50px;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 15px; z-index: 100; pointer-events: none;
         }
         #versionLabel { color: #888; font-size: 0.9rem; font-weight: bold; }
         #homeBtn {
-            pointer-events: auto;
-            background: none;
-            border: 2px solid #555;
-            border-radius: 8px;
-            color: white;
-            padding: 5px 8px;
-            cursor: pointer;
-            background-color: #222;
+            pointer-events: auto; background: none; border: 2px solid #555;
+            border-radius: 8px; color: white; padding: 5px 8px; cursor: pointer; background-color: #222;
         }
 
         /* --- VIEW CONTAINERS --- */
         .view {
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            width: 100%;
-            height: 100%;
-            padding: 60px 15px 15px 15px;
-            box-sizing: border-box;
-            overflow-y: auto;
+            display: none; flex-direction: column; align-items: center;
+            width: 100%; height: 100%; padding: 60px 15px 15px 15px;
+            box-sizing: border-box; overflow-y: auto;
         }
         .view.active { display: flex; }
 
         h1, h2, h3 { margin: 0 0 10px 0; }
         
         .logo-container {
-            width: 200px; height: 200px;
-            background-color: #222;
-            border-radius: 15px;
-            margin-bottom: 20px;
-            display: flex; justify-content: center; align-items: center;
-            overflow: hidden;
-            animation: skeletonPulse 1.5s infinite;
+            width: 200px; height: 200px; background-color: #222; border-radius: 15px;
+            margin-bottom: 20px; display: flex; justify-content: center; align-items: center;
+            overflow: hidden; animation: skeletonPulse 1.5s infinite;
         }
-        .logo-container img {
-            width: 100%; height: 100%;
-            object-fit: contain; opacity: 0; transition: opacity 0.3s;
-        }
+        .logo-container img { width: 100%; height: 100%; object-fit: contain; opacity: 0; transition: opacity 0.3s; }
         @keyframes skeletonPulse { 0% { background-color: #222; } 50% { background-color: #333; } 100% { background-color: #222; } }
 
         input[type="number"], input[type="password"] {
-            width: 100%; max-width: 300px;
-            padding: 15px; font-size: 1.2rem; text-align: center;
-            border-radius: 8px; border: 2px solid #444;
-            background: #fff; color: #000; margin-bottom: 20px;
-            box-sizing: border-box;
+            width: 100%; max-width: 300px; padding: 15px; font-size: 1.2rem; text-align: center;
+            border-radius: 8px; border: 2px solid #444; background: #fff; color: #000; margin-bottom: 20px; box-sizing: border-box;
         }
 
         button {
-            padding: 12px; font-size: 1rem; font-weight: bold;
-            border: none; border-radius: 8px; cursor: pointer;
-            transition: opacity 0.2s; -webkit-tap-highlight-color: transparent;
+            padding: 12px; font-size: 1rem; font-weight: bold; border: none; border-radius: 8px;
+            cursor: pointer; transition: opacity 0.2s; -webkit-tap-highlight-color: transparent;
             user-select: none; display: flex; justify-content: center; align-items: center; gap: 5px;
         }
         button:active { opacity: 0.7; }
         button:disabled { background-color: #555 !important; color: #888 !important; }
 
         /* --- VIEW 1: LOGIN --- */
-        #loginForm {
-            display: flex; flex-direction: column; align-items: center; width: 100%;
-        }
+        #loginForm { display: flex; flex-direction: column; align-items: center; width: 100%; }
         .login-controls { display: flex; gap: 10px; width: 100%; max-width: 300px; }
         #termsBtn { background-color: #ccc; color: #000; flex: 1; }
         #loginSubmitBtn { background-color: #4CAF50; color: #fff; flex: 1; }
@@ -113,67 +72,72 @@
             font-size: 1.2rem; font-weight: bold; margin-bottom: 20px;
             cursor: pointer; border: 2px solid #555; text-align: center;
         }
+        #startPipelineBtn {
+            width: 100%; max-width: 400px; background-color: #4CAF50; color: white;
+            font-size: 1.4rem; padding: 20px; margin-bottom: 20px; border-radius: 12px;
+        }
         .carrier-card {
             width: 100%; max-width: 400px; padding: 15px; margin-bottom: 15px;
-            color: white; border-radius: 10px; cursor: pointer;
-            text-align: left; display: flex; flex-direction: column;
-            border: 2px solid transparent; transition: transform 0.1s;
-            -webkit-tap-highlight-color: transparent;
+            color: white; border-radius: 10px; cursor: pointer; text-align: left;
+            display: flex; flex-direction: column; border: 2px solid transparent; transition: transform 0.1s;
         }
         .carrier-card:active { transform: scale(0.98); }
-        .carrier-title { font-size: 1.6rem; font-weight: bold; margin-bottom: 5px; }
-        .carrier-preview { font-size: 0.9rem; opacity: 0.9; white-space: pre-wrap; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
+        .carrier-title { font-size: 1.2rem; font-weight: bold; margin-bottom: 5px; }
+        .carrier-preview { font-size: 0.85rem; opacity: 0.9; white-space: pre-wrap; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
         .preview-empty { font-style: italic; opacity: 0.6; }
-        
         #cardATT { background-color: #00a8e0; }
         #cardVZW { background-color: #ed1c24; }
         #cardTMO { background-color: #e20074; }
 
         /* --- VIEW 3: EDIT --- */
-        .header-row {
-            display: flex; justify-content: space-between; align-items: center;
-            width: 100%; max-width: 600px; margin-bottom: 10px;
-        }
-        #editBackBtn { background-color: #555; color: white; font-size: 1.2rem; padding: 8px 15px; }
+        .header-row { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 600px; margin-bottom: 10px; }
+        #editBackBtn { background-color: #555; color: white; font-size: 1rem; padding: 8px 15px; }
         #editTitle { font-size: 1.1rem; color: #fff; font-weight: bold; flex-grow: 1; text-align: right; }
-        
         #editArea {
-            width: 100%; max-width: 600px; flex-grow: 1;
-            background: #1e1e1e; color: #fff; border: 1px solid #444;
-            border-radius: 8px; padding: 15px; font-size: 1rem;
-            resize: none; box-sizing: border-box; margin-bottom: 10px;
+            width: 100%; max-width: 600px; flex-grow: 1; background: #1e1e1e; color: #fff; border: 1px solid #444;
+            border-radius: 8px; padding: 15px; font-size: 1rem; resize: none; box-sizing: border-box; margin-bottom: 10px;
         }
         .edit-controls { display: flex; gap: 10px; width: 100%; max-width: 600px; }
         #startScannerBtn { background-color: #00ff00; color: #000; flex: 1; font-size: 1.1rem; }
         #saveEditBtn { background-color: #2196F3; color: white; flex: 1; font-size: 1.1rem; }
 
         /* --- VIEW 4: SCANNER --- */
-        .scanner-header {
-            display: flex; justify-content: space-between; align-items: center;
-            width: 100%; max-width: 600px; margin-bottom: 5px;
+        .scanner-header { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 600px; margin-bottom: 5px; }
+        #backFromScannerBtn { background-color: #555; color: white; padding: 5px 15px; display: none; }
+        
+        /* Guided Mode Header */
+        #guidedHeader {
+            background: #333; padding: 8px 12px; border-radius: 8px; flex-grow: 1; 
+            text-align: center; font-weight: bold; font-size: 0.9rem; cursor: pointer; border: 1px solid #555;
+            display: flex; justify-content: center; align-items: center; gap: 5px;
         }
-        #backFromScannerBtn { background-color: #555; color: white; padding: 5px 15px; }
-        #status { font-weight: bold; color: #4CAF50; font-size: 0.9rem; }
+        .overwrite-warn { color: #ff9800; font-size: 0.75rem; display: block; }
+
+        #status { font-weight: bold; color: #4CAF50; font-size: 0.8rem; text-align: right; min-width: 100px; }
         .pulsing { animation: pulse 1.5s infinite; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
 
         .video-container {
             position: relative; width: 100%; max-width: 400px; aspect-ratio: 1 / 1; 
-            border: 3px solid #00ff00; border-radius: 10px; overflow: hidden;
-            background: #000; margin-bottom: 10px; flex-shrink: 0; cursor: pointer; 
+            border: 3px solid #00ff00; border-radius: 10px; overflow: hidden; background: #000; margin-bottom: 5px; flex-shrink: 0; cursor: pointer; 
         }
         .focus-flash { border-color: #ffffff !important; transform: scale(0.97); transition: all 0.2s; }
         video { width: 100%; height: 100%; display: block; object-fit: cover; }
 
-        .scanner-bottom {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
-            width: 100%; max-width: 600px; flex-grow: 1; min-height: 0;
+        /* Page Carousel */
+        #pageCarousel {
+            display: flex; gap: 5px; width: 100%; max-width: 600px; margin-bottom: 5px; overflow-x: auto; padding-bottom: 5px;
         }
+        .page-btn {
+            flex: 1; min-width: 40px; padding: 8px 0; background-color: #333; color: white; border-radius: 5px; font-size: 0.9rem;
+        }
+        .page-btn.active { background-color: #2196F3; font-weight: bold; border: 2px solid #fff; }
+        .page-btn.has-data { border-bottom: 3px solid #4CAF50; }
+
+        .scanner-bottom { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; max-width: 600px; flex-grow: 1; min-height: 0; }
         #scannerList {
-            width: 100%; height: 100%; background: #1e1e1e; color: #fff;
-            border: 1px solid #444; border-radius: 8px; padding: 10px;
-            font-size: 0.85rem; resize: none; box-sizing: border-box;
-            cursor: pointer; transition: background-color 1s ease-out;
+            width: 100%; height: 100%; background: #1e1e1e; color: #fff; border: 1px solid #444; border-radius: 8px; padding: 10px;
+            font-size: 0.85rem; resize: none; box-sizing: border-box; cursor: pointer; transition: background-color 1s ease-out;
         }
         .flash-green { background-color: #004400 !important; transition: none !important; }
         
@@ -181,18 +145,22 @@
         .undo-row { display: flex; gap: 5px; }
         .undo-row button { flex: 1; background-color: #444; color: white; padding: 8px; }
         #scanToListBtn { background-color: #00ff00; color: #000; flex-grow: 1; font-size: 1.2rem; }
-        #doneScannerBtn { background-color: #2196F3; color: white; padding: 15px; }
+        
+        /* Dynamic Action Buttons */
+        .classic-actions { display: none; }
+        .guided-actions { display: none; flex-direction: column; gap: 5px; }
+        #doneScannerBtn { background-color: #2196F3; color: white; padding: 15px; width: 100%; }
+        #saveNextPageBtn { background-color: #333; color: white; border: 1px solid #555; padding: 10px; }
+        #saveNextRouteBtn { background-color: #2196F3; color: white; padding: 10px; }
 
         /* --- MODALS --- */
         .modal-overlay {
             display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.8); z-index: 1000;
-            justify-content: center; align-items: center; padding: 20px;
+            background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; padding: 20px;
         }
         .modal-box {
             display: none; background: #222; padding: 25px; border-radius: 15px;
-            border: 2px solid #555; width: 100%; max-width: 350px;
-            text-align: center; flex-direction: column; gap: 15px;
+            border: 2px solid #555; width: 100%; max-width: 350px; text-align: center; flex-direction: column; gap: 15px;
         }
         .modal-box.active { display: flex; }
         .modal-btn-row { display: flex; gap: 10px; }
@@ -200,6 +168,9 @@
         .btn-secondary { background-color: #555; color: white; }
         .btn-primary { background-color: #4CAF50; color: white; }
         .btn-danger { background-color: #f44336; color: white; }
+        
+        .route-btn { background-color: #333; color: white; padding: 15px; font-size: 1.1rem; border: 1px solid #555; }
+        
         #hiddenCanvas { display: none; }
     </style>
 </head>
@@ -207,7 +178,7 @@
 
     <!-- GLOBAL HEADER -->
     <div id="globalHeader">
-        <div id="versionLabel">v0.9.0</div>
+        <div id="versionLabel">v0.10.0</div>
         <button id="homeBtn" title="Home">
             <svg class="icon" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
         </button>
@@ -218,14 +189,11 @@
         <div class="logo-container">
             <img src="https://i.imgur.com/f8ucThF.jpeg" alt="Project IRIS Logo" onload="this.style.opacity=1; this.parentElement.style.animation='none';">
         </div>
-        
         <form id="loginForm">
             <h3>Store #</h3>
             <input type="number" id="inputStore" placeholder="Enter store number" required>
-            
             <h3>App PIN</h3>
             <input type="number" pattern="[0-9]*" inputmode="numeric" id="inputPin" placeholder="Enter PIN" required style="-webkit-text-security: disc;">
-            
             <div class="login-controls">
                 <button type="button" id="termsBtn">TERMS OF USE</button>
                 <button type="submit" id="loginSubmitBtn">LOG IN</button>
@@ -233,15 +201,15 @@
         </form>
     </div>
 
-    <!-- VIEW 2: HOME (DASHBOARD) -->
+    <!-- VIEW 2: HOME -->
     <div id="viewHome" class="view">
-        <h1 style="color: #4CAF50; margin-bottom: 20px;">Project IRIS</h1>
-        
         <div class="store-selector" id="storeSelectorBtn">
             Selected store:<br>
-            <svg class="icon" style="width:18px;height:18px;margin-right:5px;" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+            <svg class="icon-sm" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
             <span id="displayStore">----</span>
         </div>
+        
+        <button id="startPipelineBtn">START SCANNING</button>
         
         <div class="carrier-card" id="cardATT" data-carrier="ATT">
             <div class="carrier-title">AT&T</div>
@@ -257,46 +225,55 @@
         </div>
     </div>
 
-    <!-- VIEW 3: EDIT -->
+    <!-- VIEW 3: EDIT (Classic) -->
     <div id="viewEdit" class="view">
         <div class="header-row">
             <button id="editBackBtn">❮ BACK</button>
             <div id="editTitle">ATT (1698) - TAP TO EDIT</div>
         </div>
-        
         <textarea id="editArea" maxlength="15000" placeholder="Type or scan inventory here..."></textarea>
-        
         <div class="edit-controls">
             <button id="startScannerBtn">ADD FROM SCANNER</button>
             <button id="saveEditBtn">SAVE AS CURRENT</button>
         </div>
     </div>
 
-    <!-- VIEW 4: SCANNER -->
+    <!-- VIEW 4: SCANNER (Dual Mode) -->
     <div id="viewScanner" class="view">
         <div class="scanner-header">
             <button id="backFromScannerBtn">❮ BACK</button>
-            <div id="status">Ready. Fill square with text.</div>
+            <div id="guidedHeader">
+                <span id="guidedHeaderText">1698 ATT - P1</span>
+                <svg class="icon-sm" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z"/></svg>
+            </div>
+            <div id="status">Ready.</div>
         </div>
 
         <div class="video-container" id="videoContainer">
             <video id="cameraFeed" autoplay playsinline></video>
         </div>
 
+        <!-- Page Carousel (Guided Mode Only) -->
+        <div id="pageCarousel"></div>
+
         <div class="scanner-bottom">
-            <textarea id="scannerList" readonly placeholder="List memory..."></textarea>
+            <textarea id="scannerList" maxlength="15000" readonly placeholder="List memory..."></textarea>
             
             <div class="scanner-actions">
                 <div class="undo-row">
-                    <button id="undoBtn" title="Undo">
-                        <svg class="icon" viewBox="0 0 24 24"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C20.48 10.3 16.94 8 12.5 8z"/></svg>
-                    </button>
-                    <button id="redoBtn" title="Redo">
-                        <svg class="icon" viewBox="0 0 24 24"><path d="M11.5 8C15.94 8 19.52 10.3 20.9 14.12l-2.37.78C17.45 11.71 14.46 9.4 10.92 9.4c-1.96 0-3.73.72-5.12 1.88L9.42 14.9H.42v-9l3.6 3.6C5.87 8.99 8.27 8 10.92 8z"/></svg>
-                    </button>
+                    <button id="undoBtn" title="Undo"><svg class="icon" viewBox="0 0 24 24"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C20.48 10.3 16.94 8 12.5 8z"/></svg></button>
+                    <button id="redoBtn" title="Redo"><svg class="icon" viewBox="0 0 24 24"><path d="M11.5 8C15.94 8 19.52 10.3 20.9 14.12l-2.37.78C17.45 11.71 14.46 9.4 10.92 9.4c-1.96 0-3.73.72-5.12 1.88L9.42 14.9H.42v-9l3.6 3.6C5.87 8.99 8.27 8 10.92 8z"/></svg></button>
                 </div>
                 <button id="scanToListBtn">SCAN TO LIST</button>
-                <button id="doneScannerBtn">DONE WITH SCANNER</button>
+                
+                <div class="classic-actions" id="classicActions">
+                    <button id="doneScannerBtn">DONE WITH SCANNER</button>
+                </div>
+                
+                <div class="guided-actions" id="guidedActions">
+                    <button id="saveNextPageBtn">SAVE & NEXT PAGE (P2)</button>
+                    <button id="saveNextRouteBtn">SAVE & GO TO VZW</button>
+                </div>
             </div>
         </div>
     </div>
@@ -304,8 +281,7 @@
     <!-- MODALS -->
     <div id="modalOverlay" class="modal-overlay">
         <div id="modalTerms" class="modal-box">
-            <h3>Terms of Use</h3>
-            <p>Terms of use isn't made yet.</p>
+            <h3>Terms of Use</h3><p>Terms of use isn't made yet.</p>
             <button class="btn-primary" onclick="hideModal()">OK</button>
         </div>
         <div id="modalStore" class="modal-box">
@@ -317,12 +293,19 @@
             </div>
         </div>
         <div id="modalBackWarn" class="modal-box">
-            <h3>Unsaved Changes!</h3>
-            <p>Are you sure you want to go back? Changes will be lost.</p>
+            <h3>Unsaved Changes!</h3><p>Changes will be lost.</p>
             <div class="modal-btn-row">
                 <button class="btn-secondary" onclick="hideModal()">Cancel</button>
                 <button class="btn-danger" id="confirmBackWarnBtn">Yes, Go Back</button>
             </div>
+        </div>
+        <div id="modalGuidedRoute" class="modal-box" style="gap:10px;">
+            <h3>Change Carrier</h3>
+            <button class="route-btn" onclick="guidedSwitchRoute('ATT')">AT&T</button>
+            <button class="route-btn" onclick="guidedSwitchRoute('VZW')">Verizon</button>
+            <button class="route-btn" onclick="guidedSwitchRoute('TMO')">T-Mobile</button>
+            <button class="btn-secondary" style="margin-top:10px;" onclick="document.getElementById('storeSelectorBtn').click()">Change Store #</button>
+            <button class="btn-primary" onclick="hideModal()">Cancel</button>
         </div>
     </div>
 
@@ -332,15 +315,19 @@
         // --- CONFIGURATION ---
         const OCR_API_KEY = 'K83239282988957'; 
         const TARGET_PIN_HASH = 'MTAyMDMw'; // btoa('102030')
+        const EXPIRY_MS = 8 * 60 * 60 * 1000; // 8 Hours
 
         // --- STATE ---
         let currentStore = "";
         let currentCarrier = "";
+        let currentPage = 1;
+        let scannerMode = "guided"; // 'guided' or 'classic'
         let currentStream = null;
         let originalEditText = "";
-        
-        let undoStack = [];
-        let redoStack = [];
+        let undoStack = []; let redoStack = [];
+
+        // In-memory working object for Guided Mode
+        let activeGuidedData = { timestamp: 0, pages: {} };
 
         // --- DOM ---
         const views = document.querySelectorAll('.view');
@@ -353,7 +340,48 @@
         const editArea = document.getElementById('editArea');
         const scannerList = document.getElementById('scannerList');
 
-        // --- INIT & UTILS ---
+        // --- DATA ENGINE (8-Hour Expiry & JSON Storage) ---
+        function getCarrierData(store, carrier) {
+            const raw = localStorage.getItem(`IRIS_${store}_${carrier}`);
+            if (!raw) return { timestamp: Date.now(), pages: {} };
+            try {
+                let data = JSON.parse(raw);
+                if (Date.now() - data.timestamp > EXPIRY_MS) {
+                    localStorage.removeItem(`IRIS_${store}_${carrier}`);
+                    return { timestamp: Date.now(), pages: {} };
+                }
+                return data;
+            } catch (e) { return { timestamp: Date.now(), pages: {} }; }
+        }
+
+        function saveCarrierData(store, carrier, dataObj) {
+            dataObj.timestamp = Date.now();
+            localStorage.setItem(`IRIS_${store}_${carrier}`, JSON.stringify(dataObj));
+        }
+
+        // Smart Deduplication Algorithm
+        function stitchPages(dataObj) {
+            let seenLines = new Set();
+            let finalLines = [];
+            for(let p=1; p<=7; p++) {
+                if(!dataObj.pages[p]) continue;
+                let lines = dataObj.pages[p].split('\n').map(l=>l.trim()).filter(l=>l);
+                for(let line of lines) {
+                    if(!seenLines.has(line)) {
+                        seenLines.add(line);
+                        finalLines.push(line);
+                    }
+                }
+            }
+            return finalLines.join('\n');
+        }
+
+        function checkAllExpiries() {
+            if(!currentStore) return;
+            ['ATT','VZW','TMO'].forEach(c => getCarrierData(currentStore, c));
+        }
+
+        // --- INIT & NAVIGATION ---
         window.onload = () => {
             const lastStore = localStorage.getItem('lastStore');
             if (lastStore) {
@@ -381,32 +409,31 @@
 
         // --- VIEW 1: LOGIN ---
         document.getElementById('loginForm').addEventListener('submit', (e) => {
-            e.preventDefault(); // Prevents page reload on Enter
+            e.preventDefault();
             const storeVal = document.getElementById('inputStore').value.trim();
             const pinVal = document.getElementById('inputPin').value.trim();
-
             if (btoa(pinVal) === TARGET_PIN_HASH) {
                 currentStore = storeVal;
                 localStorage.setItem('lastStore', storeVal);
                 document.getElementById('inputPin').value = ""; 
+                checkAllExpiries();
                 initHomeView();
                 switchView('viewHome');
-            } else {
-                alert("Incorrect App PIN.");
-            }
+            } else alert("Incorrect App PIN.");
         });
 
         // --- VIEW 2: HOME ---
         function initHomeView() {
             document.getElementById('displayStore').innerText = currentStore;
             ['ATT', 'VZW', 'TMO'].forEach(c => {
-                const data = localStorage.getItem(`IRIS_${currentStore}_${c}`) || "";
+                const data = getCarrierData(currentStore, c);
+                const stitched = stitchPages(data);
                 const previewEl = document.getElementById(`preview${c}`);
-                if (data.trim() === "") {
+                if (!stitched) {
                     previewEl.innerText = "no reports";
                     previewEl.className = "carrier-preview preview-empty";
                 } else {
-                    previewEl.innerText = data.length > 80 ? data.substring(0, 80) + "..." : data;
+                    previewEl.innerText = stitched.length > 80 ? stitched.substring(0, 80) + "..." : stitched;
                     previewEl.className = "carrier-preview";
                 }
             });
@@ -421,6 +448,7 @@
             if (newStore) {
                 currentStore = newStore;
                 localStorage.setItem('lastStore', currentStore);
+                checkAllExpiries();
                 initHomeView();
             }
             hideModal();
@@ -434,51 +462,196 @@
             });
         });
 
-        // --- VIEW 3: EDIT ---
+        // Smart Pipeline Start
+        document.getElementById('startPipelineBtn').addEventListener('click', () => {
+            const carriers = ['ATT', 'VZW', 'TMO'];
+            let target = 'ATT';
+            for (let c of carriers) {
+                if (!stitchPages(getCarrierData(currentStore, c))) {
+                    target = c; break;
+                }
+            }
+            currentCarrier = target;
+            currentPage = 1;
+            scannerMode = "guided";
+            initGuidedScanner();
+            switchView('viewScanner');
+        });
+
+        // --- VIEW 3: EDIT (CLASSIC) ---
         function initEditView() {
             document.getElementById('editTitle').innerText = `${currentCarrier} (${currentStore}) - TAP TO EDIT`;
-            const data = localStorage.getItem(`IRIS_${currentStore}_${currentCarrier}`) || "";
-            editArea.value = data;
-            originalEditText = data;
+            const data = getCarrierData(currentStore, currentCarrier);
+            const stitched = stitchPages(data);
+            editArea.value = stitched;
+            originalEditText = stitched;
         }
 
         document.getElementById('editBackBtn').addEventListener('click', () => {
-            if (editArea.value !== originalEditText) {
-                showModal('modalBackWarn');
-            } else {
-                initHomeView();
-                switchView('viewHome');
-            }
+            if (editArea.value !== originalEditText) showModal('modalBackWarn');
+            else { initHomeView(); switchView('viewHome'); }
         });
 
         document.getElementById('confirmBackWarnBtn').addEventListener('click', () => {
-            hideModal();
-            initHomeView();
-            switchView('viewHome');
+            hideModal(); initHomeView(); switchView('viewHome');
         });
 
         document.getElementById('saveEditBtn').addEventListener('click', () => {
-            localStorage.setItem(`IRIS_${currentStore}_${currentCarrier}`, editArea.value);
+            // Manual edit replaces Page 1 and clears others to prevent data corruption
+            let data = { timestamp: Date.now(), pages: { 1: editArea.value } };
+            saveCarrierData(currentStore, currentCarrier, data);
             originalEditText = editArea.value;
+            
             const btn = document.getElementById('saveEditBtn');
             const origText = btn.innerText;
-            btn.innerText = "✔️ SAVED!";
-            btn.style.backgroundColor = "#4CAF50";
+            btn.innerText = "✔️ SAVED!"; btn.style.backgroundColor = "#4CAF50";
             setTimeout(() => { btn.innerText = origText; btn.style.backgroundColor = "#2196F3"; }, 2000);
         });
 
-        document.getElementById('startScannerBtn').addEventListener('click', async () => {
-            scannerList.value = editArea.value;
-            undoStack = []; redoStack = []; // Reset history
-            statusEl.innerText = "Initializing...";
-            statusEl.style.color = "#ffeb3b";
+        document.getElementById('startScannerBtn').addEventListener('click', () => {
+            scannerMode = "classic";
+            initClassicScanner();
             switchView('viewScanner');
-            await startCamera();
-            statusEl.innerText = "Ready. Fill square with text.";
-            statusEl.style.color = "#4CAF50";
         });
 
-        // --- VIEW 4: SCANNER (Core Logic Untouched) ---
+        // --- VIEW 4: SCANNER (DUAL MODE) ---
+        
+        // Guided Mode Initialization
+        async function initGuidedScanner() {
+            document.getElementById('backFromScannerBtn').style.display = 'none';
+            document.getElementById('guidedHeader').style.display = 'flex';
+            document.getElementById('pageCarousel').style.display = 'flex';
+            document.getElementById('classicActions').style.display = 'none';
+            document.getElementById('guidedActions').style.display = 'flex';
+            
+            activeGuidedData = getCarrierData(currentStore, currentCarrier);
+            
+            // Header Overwrite Warning
+            let warnHtml = "";
+            let stitched = stitchPages(activeGuidedData);
+            if(stitched) {
+                let hrs = Math.floor((Date.now() - activeGuidedData.timestamp) / 3600000);
+                warnHtml = `<span class="overwrite-warn">(Overwrite ${hrs}hr ago)</span>`;
+            }
+            document.getElementById('guidedHeaderText').innerHTML = `${currentStore} ${currentCarrier} ${warnHtml} - P${currentPage}`;
+
+            renderPageCarousel();
+            scannerList.value = activeGuidedData.pages[currentPage] || "";
+            undoStack = []; redoStack = [];
+            updateGuidedRoutingButtons();
+
+            await startCamera();
+        }
+
+        function renderPageCarousel() {
+            const carousel = document.getElementById('pageCarousel');
+            carousel.innerHTML = '';
+            for(let i=1; i<=7; i++) {
+                let btn = document.createElement('button');
+                btn.className = `page-btn ${i === currentPage ? 'active' : ''} ${activeGuidedData.pages[i] ? 'has-data' : ''}`;
+                btn.innerText = `P${i}`;
+                btn.onclick = () => {
+                    activeGuidedData.pages[currentPage] = scannerList.value; // Save current
+                    currentPage = i;
+                    scannerList.value = activeGuidedData.pages[currentPage] || "";
+                    undoStack = []; redoStack = [];
+                    renderPageCarousel();
+                    document.getElementById('guidedHeaderText').innerHTML = document.getElementById('guidedHeaderText').innerHTML.replace(/- P\d+/, `- P${currentPage}`);
+                    updateGuidedRoutingButtons();
+                };
+                carousel.appendChild(btn);
+            }
+        }
+
+        function updateGuidedRoutingButtons() {
+            let nextP = currentPage < 7 ? currentPage + 1 : 7;
+            document.getElementById('saveNextPageBtn').innerText = `SAVE & NEXT PAGE (P${nextP})`;
+            
+            const order = ['ATT', 'VZW', 'TMO'];
+            let currIdx = order.indexOf(currentCarrier);
+            let nextCarrier = null;
+            
+            // Look forward for empty carriers
+            for(let i=1; i<=3; i++) {
+                let checkIdx = (currIdx + i) % 3;
+                let checkC = order[checkIdx];
+                if(checkIdx === currIdx) break; // Looped around
+                if(!stitchPages(getCarrierData(currentStore, checkC))) {
+                    nextCarrier = checkC; break;
+                }
+            }
+            
+            const routeBtn = document.getElementById('saveNextRouteBtn');
+            if (nextCarrier) {
+                routeBtn.innerText = `SAVE & GO TO ${nextCarrier}`;
+                routeBtn.onclick = () => guidedSaveAndRoute(nextCarrier);
+            } else {
+                routeBtn.innerText = `SAVE & FINISH`;
+                routeBtn.onclick = () => guidedSaveAndRoute('FINISH');
+            }
+        }
+
+        document.getElementById('saveNextPageBtn').addEventListener('click', () => {
+            activeGuidedData.pages[currentPage] = scannerList.value;
+            saveCarrierData(currentStore, currentCarrier, activeGuidedData);
+            if (currentPage < 7) {
+                currentPage++;
+                scannerList.value = activeGuidedData.pages[currentPage] || "";
+                undoStack = []; redoStack = [];
+                renderPageCarousel();
+                document.getElementById('guidedHeaderText').innerHTML = document.getElementById('guidedHeaderText').innerHTML.replace(/- P\d+/, `- P${currentPage}`);
+                updateGuidedRoutingButtons();
+            }
+        });
+
+        function guidedSaveAndRoute(target) {
+            activeGuidedData.pages[currentPage] = scannerList.value;
+            saveCarrierData(currentStore, currentCarrier, activeGuidedData);
+            stopCamera();
+            if (target === 'FINISH') {
+                initHomeView(); switchView('viewHome');
+            } else {
+                currentCarrier = target; currentPage = 1;
+                initGuidedScanner();
+            }
+        }
+
+        document.getElementById('guidedHeader').addEventListener('click', () => showModal('modalGuidedRoute'));
+        function guidedSwitchRoute(targetCarrier) {
+            hideModal();
+            activeGuidedData.pages[currentPage] = scannerList.value;
+            saveCarrierData(currentStore, currentCarrier, activeGuidedData);
+            currentCarrier = targetCarrier; currentPage = 1;
+            initGuidedScanner();
+        }
+
+        // Classic Mode Initialization
+        async function initClassicScanner() {
+            document.getElementById('backFromScannerBtn').style.display = 'block';
+            document.getElementById('guidedHeader').style.display = 'none';
+            document.getElementById('pageCarousel').style.display = 'none';
+            document.getElementById('classicActions').style.display = 'block';
+            document.getElementById('guidedActions').style.display = 'none';
+            
+            scannerList.value = editArea.value;
+            undoStack = []; redoStack = [];
+            statusEl.innerText = "Ready.";
+            await startCamera();
+        }
+
+        function exitClassicScanner(focusEdit = false) {
+            stopCamera();
+            editArea.value = scannerList.value; 
+            switchView('viewEdit');
+            if (focusEdit) setTimeout(() => editArea.focus(), 100);
+        }
+        document.getElementById('backFromScannerBtn').addEventListener('click', () => exitClassicScanner(false));
+        document.getElementById('doneScannerBtn').addEventListener('click', () => exitClassicScanner(false));
+        document.getElementById('scannerList').addEventListener('click', () => {
+            if (scannerMode === 'classic') exitClassicScanner(true);
+        });
+
+        // Camera Logic
         async function startCamera() {
             if (currentStream) return;
             try {
@@ -486,18 +659,15 @@
                     video: { facingMode: 'environment', width: { ideal: 4096 }, height: { ideal: 2160 }, advanced: [{ focusMode: "continuous" }] }
                 });
                 video.srcObject = currentStream;
-            } catch (err) { console.error(err); statusEl.innerText = "Camera Error."; }
+            } catch (err) { statusEl.innerText = "Camera Error."; }
         }
-
         function stopCamera() {
             if (currentStream) { currentStream.getTracks().forEach(t => t.stop()); currentStream = null; video.srcObject = null; }
         }
-
         document.addEventListener('visibilitychange', () => {
             if (document.hidden) stopCamera();
             else if (document.getElementById('viewScanner').classList.contains('active')) startCamera();
         });
-
         document.getElementById('videoContainer').addEventListener('click', async () => {
             if (!currentStream) return;
             const track = currentStream.getVideoTracks()[0];
@@ -508,21 +678,10 @@
             }
         });
 
-        // Exit Paths
-        function exitScanner(focusEdit = false) {
-            stopCamera();
-            editArea.value = scannerList.value; // Pass memory back
-            switchView('viewEdit');
-            if (focusEdit) setTimeout(() => editArea.focus(), 100);
-        }
-        document.getElementById('backFromScannerBtn').addEventListener('click', () => exitScanner(false));
-        document.getElementById('doneScannerBtn').addEventListener('click', () => exitScanner(false));
-        document.getElementById('scannerList').addEventListener('click', () => exitScanner(true));
-
         // Undo / Redo Logic
         function saveState() {
             undoStack.push(scannerList.value);
-            if (undoStack.length > 3) undoStack.shift(); // Cap at 3
+            if (undoStack.length > 3) undoStack.shift();
             redoStack = [];
         }
         document.getElementById('undoBtn').addEventListener('click', () => {
@@ -538,7 +697,7 @@
             }
         });
 
-        // Scan Action
+        // --- OCR SCANNING LOGIC (Smart Table + Filter) ---
         document.getElementById('scanToListBtn').addEventListener('click', async () => {
             if (!currentStream || video.videoWidth === 0) return;
             const btn = document.getElementById('scanToListBtn');
@@ -563,7 +722,7 @@
                 if (!json.IsErroredOnProcessing && json.ParsedResults && json.ParsedResults.length > 0) {
                     const rawText = json.ParsedResults[0].ParsedText;
                     
-                    // --- SMART TABLE PARSER & FILTER ---
+                    // Garbage Filter & Sanitizer
                     const trashList = [
                         'walmart', 'feedback', 'click any row', 'device model', 
                         'capacity', 'color', 'availability', 'in stock', 'out of stock', 
@@ -576,35 +735,25 @@
                         .filter(line => {
                             if (!line) return false;
                             const lowerLine = line.toLowerCase();
-                            // If line contains ANY trash word, delete it
                             return !trashList.some(trash => lowerLine.includes(trash));
                         })
-                        .map(line => {
-                            // Sanitize: Remove bullets, fix typo 'Avallable'
-                            return line.replace(/•/g, '').replace(/Avallable/gi, 'Available').trim();
-                        })
-                        .filter(line => line.length > 0) // Remove lines that became empty
+                        .map(line => line.replace(/•/g, '').replace(/Avallable/gi, 'Available').trim())
+                        .filter(line => line.length > 0)
                         .join('\n');
 
                     if (cleanedText) {
-                        saveState(); // Save for undo
+                        saveState(); 
                         scannerList.value += (scannerList.value ? '\n' : '') + cleanedText;
-                        
-                        // Animation & Scroll
                         scannerList.classList.add('flash-green');
                         scannerList.scrollTop = scannerList.scrollHeight;
                         setTimeout(() => scannerList.classList.remove('flash-green'), 50);
-
-                        statusEl.innerText = "Added!"; statusEl.style.color = "#4CAF50";
-                    } else { 
-                        statusEl.innerText = "Filtered to empty. No valid text."; 
-                        statusEl.style.color = "#ff9800"; 
-                    }
+                        statusEl.innerText = "Added!"; 
+                    } else { statusEl.innerText = "Filtered to empty."; statusEl.style.color = "#ff9800"; }
                 } else { statusEl.innerText = "API Error / No text."; statusEl.style.color = "#f44336"; }
             } catch (err) { statusEl.classList.remove('pulsing'); statusEl.innerText = "Network Error."; statusEl.style.color = "#f44336"; }
 
             btn.disabled = false;
-            setTimeout(() => { if (statusEl.innerText === "Added!" || statusEl.innerText.includes("No text")) statusEl.innerText = "Ready. Fill square with text."; statusEl.style.color = "#4CAF50"; }, 2000);
+            setTimeout(() => { if (statusEl.innerText === "Added!" || statusEl.innerText.includes("empty")) { statusEl.innerText = "Ready."; statusEl.style.color = "#4CAF50"; } }, 2000);
         });
     </script>
 </body>
