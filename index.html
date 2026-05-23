@@ -178,7 +178,7 @@
 
     <!-- GLOBAL HEADER -->
     <div id="globalHeader">
-        <div id="versionLabel">v0.10.0</div>
+        <div id="versionLabel">v0.11.0</div>
         <button id="homeBtn" title="Home">
             <svg class="icon" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
         </button>
@@ -722,23 +722,43 @@
                 if (!json.IsErroredOnProcessing && json.ParsedResults && json.ParsedResults.length > 0) {
                     const rawText = json.ParsedResults[0].ParsedText;
                     
-                    // Garbage Filter & Sanitizer
+                   // Garbage Filter, Sanitizer & Stitcher
                     const trashList = [
                         'walmart', 'feedback', 'click any row', 'device model', 
                         'capacity', 'color', 'availability', 'in stock', 'out of stock', 
                         'prepaid', 'wireless', 'dashboard', 'cellular', 'deviceonly', 
-                        'total items', 'show in stock', 'select a row'
+                        'total items', 'show in stock', 'select a row',
+                        'what type', 'what fee', 'what feedba', 'select', 'carrier', '×', 'view inventory'
                     ];
                     
                     const cleanedText = rawText.split('\n')
-                        .map(line => line.trim())
+                        // Step A: Space & Tab Crusher
+                        .map(line => line.replace(/\s+/g, ' ').trim())
+                        // Step B & C: Timestamp Assassin & Garbage Filter
                         .filter(line => {
                             if (!line) return false;
+                            if (/^\d{1,2}:\d{2}$/.test(line)) return false; // Kills timestamps
                             const lowerLine = line.toLowerCase();
                             return !trashList.some(trash => lowerLine.includes(trash));
                         })
+                        // Step D: Typo Fixer
                         .map(line => line.replace(/•/g, '').replace(/Avallable/gi, 'Available').trim())
                         .filter(line => line.length > 0)
+                        // Step E: Orphan Safety Stitcher
+                        .reduce((acc, currentLine) => {
+                            if (acc.length === 0) {
+                                acc.push(currentLine);
+                            } else {
+                                const prevLine = acc[acc.length - 1];
+                                // If previous line doesn't end with "Available", glue this line to it
+                                if (!/available$/i.test(prevLine)) {
+                                    acc[acc.length - 1] = prevLine + ' ' + currentLine;
+                                } else {
+                                    acc.push(currentLine);
+                                }
+                            }
+                            return acc;
+                        }, [])
                         .join('\n');
 
                     if (cleanedText) {
