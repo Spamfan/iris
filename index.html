@@ -105,7 +105,6 @@
         .scanner-header { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 600px; margin-bottom: 5px; }
         #backFromScannerBtn { background-color: #555; color: white; padding: 5px 15px; display: none; }
         
-        /* Guided Mode Header */
         #guidedHeader {
             background: #333; padding: 8px 12px; border-radius: 8px; flex-grow: 1; 
             text-align: center; font-weight: bold; font-size: 0.9rem; cursor: pointer; border: 1px solid #555;
@@ -124,7 +123,6 @@
         .focus-flash { border-color: #ffffff !important; transform: scale(0.97); transition: all 0.2s; }
         video { width: 100%; height: 100%; display: block; object-fit: cover; }
 
-        /* Page Carousel */
         #pageCarousel {
             display: flex; gap: 5px; width: 100%; max-width: 600px; margin-bottom: 5px; overflow-x: auto; padding-bottom: 5px;
         }
@@ -146,7 +144,6 @@
         .undo-row button { flex: 1; background-color: #444; color: white; padding: 8px; }
         #scanToListBtn { background-color: #00ff00; color: #000; flex-grow: 1; font-size: 1.2rem; }
         
-        /* Dynamic Action Buttons */
         .classic-actions { display: none; }
         .guided-actions { display: none; flex-direction: column; gap: 5px; }
         #doneScannerBtn { background-color: #2196F3; color: white; padding: 15px; width: 100%; }
@@ -178,7 +175,7 @@
 
     <!-- GLOBAL HEADER -->
     <div id="globalHeader">
-        <div id="versionLabel">v0.11.0</div>
+        <div id="versionLabel">v0.12.0</div>
         <button id="homeBtn" title="Home">
             <svg class="icon" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
         </button>
@@ -253,7 +250,6 @@
             <video id="cameraFeed" autoplay playsinline></video>
         </div>
 
-        <!-- Page Carousel (Guided Mode Only) -->
         <div id="pageCarousel"></div>
 
         <div class="scanner-bottom">
@@ -314,19 +310,17 @@
     <script>
         // --- CONFIGURATION ---
         const OCR_API_KEY = 'K83239282988957'; 
-        const TARGET_PIN_HASH = 'MTAyMDMw'; // btoa('102030')
-        const EXPIRY_MS = 8 * 60 * 60 * 1000; // 8 Hours
+        const SECRET_SUFFIX = atob('MTAyMA=='); // "1020"
+        const EXPIRY_MS = 8 * 60 * 60 * 1000; 
 
         // --- STATE ---
         let currentStore = "";
         let currentCarrier = "";
         let currentPage = 1;
-        let scannerMode = "guided"; // 'guided' or 'classic'
+        let scannerMode = "guided"; 
         let currentStream = null;
         let originalEditText = "";
         let undoStack = []; let redoStack = [];
-
-        // In-memory working object for Guided Mode
         let activeGuidedData = { timestamp: 0, pages: {} };
 
         // --- DOM ---
@@ -340,7 +334,7 @@
         const editArea = document.getElementById('editArea');
         const scannerList = document.getElementById('scannerList');
 
-        // --- DATA ENGINE (8-Hour Expiry & JSON Storage) ---
+        // --- DATA ENGINE ---
         function getCarrierData(store, carrier) {
             const raw = localStorage.getItem(`IRIS_${store}_${carrier}`);
             if (!raw) return { timestamp: Date.now(), pages: {} };
@@ -359,7 +353,6 @@
             localStorage.setItem(`IRIS_${store}_${carrier}`, JSON.stringify(dataObj));
         }
 
-        // Smart Deduplication Algorithm
         function stitchPages(dataObj) {
             let seenLines = new Set();
             let finalLines = [];
@@ -381,8 +374,31 @@
             ['ATT','VZW','TMO'].forEach(c => getCarrierData(currentStore, c));
         }
 
-        // --- INIT & NAVIGATION ---
+        // --- NAVIGATION (HISTORY API) ---
+        function navigateTo(viewId, pushState = true) {
+            views.forEach(v => v.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+            if (pushState) {
+                history.pushState({ view: viewId }, "", "#" + viewId);
+            }
+        }
+
+        window.addEventListener('popstate', (e) => {
+            if (currentStream) {
+                stopCamera();
+                if (scannerMode === 'classic') editArea.value = scannerList.value;
+            }
+            if (e.state && e.state.view) {
+                views.forEach(v => v.classList.remove('active'));
+                document.getElementById(e.state.view).classList.add('active');
+            } else {
+                views.forEach(v => v.classList.remove('active'));
+                document.getElementById('viewLogin').classList.add('active');
+            }
+        });
+
         window.onload = () => {
+            history.replaceState({ view: 'viewLogin' }, "", "#viewLogin");
             const lastStore = localStorage.getItem('lastStore');
             if (lastStore) {
                 document.getElementById('inputStore').value = lastStore;
@@ -390,10 +406,6 @@
             }
         };
 
-        function switchView(viewId) {
-            views.forEach(v => v.classList.remove('active'));
-            document.getElementById(viewId).classList.add('active');
-        }
         function showModal(id) {
             modals.forEach(m => m.classList.remove('active'));
             document.getElementById(id).classList.add('active');
@@ -407,19 +419,34 @@
         document.getElementById('homeBtn').addEventListener('click', () => window.location.href = 'https://spamfan.github.io');
         document.getElementById('termsBtn').addEventListener('click', () => showModal('modalTerms'));
 
-        // --- VIEW 1: LOGIN ---
+        // --- VIEW 1: LOGIN (AUTO-LOGIN) ---
+        function handleLoginSuccess(storeVal) {
+            currentStore = storeVal;
+            localStorage.setItem('lastStore', storeVal);
+            document.getElementById('inputPin').value = ""; 
+            checkAllExpiries();
+            initHomeView();
+            navigateTo('viewHome');
+        }
+
+        document.getElementById('inputPin').addEventListener('input', (e) => {
+            const storeVal = document.getElementById('inputStore').value.trim();
+            const pinVal = e.target.value.trim();
+            if (storeVal && pinVal === storeVal + SECRET_SUFFIX) {
+                e.target.blur(); 
+                handleLoginSuccess(storeVal);
+            }
+        });
+
         document.getElementById('loginForm').addEventListener('submit', (e) => {
             e.preventDefault();
             const storeVal = document.getElementById('inputStore').value.trim();
             const pinVal = document.getElementById('inputPin').value.trim();
-            if (btoa(pinVal) === TARGET_PIN_HASH) {
-                currentStore = storeVal;
-                localStorage.setItem('lastStore', storeVal);
-                document.getElementById('inputPin').value = ""; 
-                checkAllExpiries();
-                initHomeView();
-                switchView('viewHome');
-            } else alert("Incorrect App PIN.");
+            if (pinVal === storeVal + SECRET_SUFFIX) {
+                handleLoginSuccess(storeVal);
+            } else {
+                alert("Incorrect App PIN.");
+            }
         });
 
         // --- VIEW 2: HOME ---
@@ -458,24 +485,19 @@
             card.addEventListener('click', (e) => {
                 currentCarrier = e.currentTarget.dataset.carrier;
                 initEditView();
-                switchView('viewEdit');
+                navigateTo('viewEdit');
             });
         });
 
-        // Smart Pipeline Start
         document.getElementById('startPipelineBtn').addEventListener('click', () => {
             const carriers = ['ATT', 'VZW', 'TMO'];
             let target = 'ATT';
             for (let c of carriers) {
-                if (!stitchPages(getCarrierData(currentStore, c))) {
-                    target = c; break;
-                }
+                if (!stitchPages(getCarrierData(currentStore, c))) { target = c; break; }
             }
-            currentCarrier = target;
-            currentPage = 1;
-            scannerMode = "guided";
+            currentCarrier = target; currentPage = 1; scannerMode = "guided";
             initGuidedScanner();
-            switchView('viewScanner');
+            navigateTo('viewScanner');
         });
 
         // --- VIEW 3: EDIT (CLASSIC) ---
@@ -489,15 +511,13 @@
 
         document.getElementById('editBackBtn').addEventListener('click', () => {
             if (editArea.value !== originalEditText) showModal('modalBackWarn');
-            else { initHomeView(); switchView('viewHome'); }
+            else history.back();
         });
-
         document.getElementById('confirmBackWarnBtn').addEventListener('click', () => {
-            hideModal(); initHomeView(); switchView('viewHome');
+            hideModal(); history.back();
         });
 
         document.getElementById('saveEditBtn').addEventListener('click', () => {
-            // Manual edit replaces Page 1 and clears others to prevent data corruption
             let data = { timestamp: Date.now(), pages: { 1: editArea.value } };
             saveCarrierData(currentStore, currentCarrier, data);
             originalEditText = editArea.value;
@@ -511,12 +531,10 @@
         document.getElementById('startScannerBtn').addEventListener('click', () => {
             scannerMode = "classic";
             initClassicScanner();
-            switchView('viewScanner');
+            navigateTo('viewScanner');
         });
 
         // --- VIEW 4: SCANNER (DUAL MODE) ---
-        
-        // Guided Mode Initialization
         async function initGuidedScanner() {
             document.getElementById('backFromScannerBtn').style.display = 'none';
             document.getElementById('guidedHeader').style.display = 'flex';
@@ -526,7 +544,6 @@
             
             activeGuidedData = getCarrierData(currentStore, currentCarrier);
             
-            // Header Overwrite Warning
             let warnHtml = "";
             let stitched = stitchPages(activeGuidedData);
             if(stitched) {
@@ -551,7 +568,7 @@
                 btn.className = `page-btn ${i === currentPage ? 'active' : ''} ${activeGuidedData.pages[i] ? 'has-data' : ''}`;
                 btn.innerText = `P${i}`;
                 btn.onclick = () => {
-                    activeGuidedData.pages[currentPage] = scannerList.value; // Save current
+                    activeGuidedData.pages[currentPage] = scannerList.value; 
                     currentPage = i;
                     scannerList.value = activeGuidedData.pages[currentPage] || "";
                     undoStack = []; redoStack = [];
@@ -571,11 +588,10 @@
             let currIdx = order.indexOf(currentCarrier);
             let nextCarrier = null;
             
-            // Look forward for empty carriers
             for(let i=1; i<=3; i++) {
                 let checkIdx = (currIdx + i) % 3;
                 let checkC = order[checkIdx];
-                if(checkIdx === currIdx) break; // Looped around
+                if(checkIdx === currIdx) break; 
                 if(!stitchPages(getCarrierData(currentStore, checkC))) {
                     nextCarrier = checkC; break;
                 }
@@ -609,7 +625,7 @@
             saveCarrierData(currentStore, currentCarrier, activeGuidedData);
             stopCamera();
             if (target === 'FINISH') {
-                initHomeView(); switchView('viewHome');
+                initHomeView(); navigateTo('viewHome');
             } else {
                 currentCarrier = target; currentPage = 1;
                 initGuidedScanner();
@@ -625,7 +641,6 @@
             initGuidedScanner();
         }
 
-        // Classic Mode Initialization
         async function initClassicScanner() {
             document.getElementById('backFromScannerBtn').style.display = 'block';
             document.getElementById('guidedHeader').style.display = 'none';
@@ -639,19 +654,19 @@
             await startCamera();
         }
 
-        function exitClassicScanner(focusEdit = false) {
+        function exitScannerLogic(focusEdit = false) {
             stopCamera();
-            editArea.value = scannerList.value; 
-            switchView('viewEdit');
+            if (scannerMode === 'classic') editArea.value = scannerList.value; 
+            history.back();
             if (focusEdit) setTimeout(() => editArea.focus(), 100);
         }
-        document.getElementById('backFromScannerBtn').addEventListener('click', () => exitClassicScanner(false));
-        document.getElementById('doneScannerBtn').addEventListener('click', () => exitClassicScanner(false));
+        document.getElementById('backFromScannerBtn').addEventListener('click', () => exitScannerLogic(false));
+        document.getElementById('doneScannerBtn').addEventListener('click', () => exitScannerLogic(false));
         document.getElementById('scannerList').addEventListener('click', () => {
-            if (scannerMode === 'classic') exitClassicScanner(true);
+            if (scannerMode === 'classic') exitScannerLogic(true);
         });
 
-        // Camera Logic
+        // --- CAMERA LOGIC ---
         async function startCamera() {
             if (currentStream) return;
             try {
@@ -678,26 +693,19 @@
             }
         });
 
-        // Undo / Redo Logic
         function saveState() {
             undoStack.push(scannerList.value);
             if (undoStack.length > 3) undoStack.shift();
             redoStack = [];
         }
         document.getElementById('undoBtn').addEventListener('click', () => {
-            if (undoStack.length > 0) {
-                redoStack.push(scannerList.value);
-                scannerList.value = undoStack.pop();
-            }
+            if (undoStack.length > 0) { redoStack.push(scannerList.value); scannerList.value = undoStack.pop(); }
         });
         document.getElementById('redoBtn').addEventListener('click', () => {
-            if (redoStack.length > 0) {
-                undoStack.push(scannerList.value);
-                scannerList.value = redoStack.pop();
-            }
+            if (redoStack.length > 0) { undoStack.push(scannerList.value); scannerList.value = redoStack.pop(); }
         });
 
-        // --- OCR SCANNING LOGIC (Smart Table + Filter) ---
+        // --- OCR LOGIC (Continuous Stream Parser) ---
         document.getElementById('scanToListBtn').addEventListener('click', async () => {
             if (!currentStream || video.videoWidth === 0) return;
             const btn = document.getElementById('scanToListBtn');
@@ -712,7 +720,7 @@
             formData.append('base64Image', canvas.toDataURL('image/jpeg', 0.8));
             formData.append('OCREngine', '2'); 
             formData.append('scale', 'true'); 
-            formData.append('isTable', 'true'); // Forces Horizontal Reading
+            formData.append('isTable', 'true'); 
 
             try {
                 const res = await fetch('https://api.ocr.space/parse/image', { method: 'POST', body: formData });
@@ -722,43 +730,36 @@
                 if (!json.IsErroredOnProcessing && json.ParsedResults && json.ParsedResults.length > 0) {
                     const rawText = json.ParsedResults[0].ParsedText;
                     
-                   // Garbage Filter, Sanitizer & Stitcher
+                    // Step A: Crush into single line
+                    let streamText = rawText.replace(/\s+/g, ' ');
+
+                    // Step B: Timestamp & Trash Assassin
+                    streamText = streamText.replace(/\b\d{1,2}:\d{2}\b/g, ' '); 
+
                     const trashList = [
                         'walmart', 'feedback', 'click any row', 'device model', 
-                        'capacity', 'color', 'availability', 'in stock', 'out of stock', 
+                        'capacity', 'color', 'availability status', 'in stock', 'out of stock', 
                         'prepaid', 'wireless', 'dashboard', 'cellular', 'deviceonly', 
                         'total items', 'show in stock', 'select a row',
-                        'what type', 'what fee', 'what feedba', 'select', 'carrier', '×', 'view inventory'
+                        'what type', 'what fee', 'what feedba', 'select', 'carrier', '×', 'view inventory',
+                        'store inventory', 'metro prepaid'
                     ];
                     
-                    const cleanedText = rawText.split('\n')
-                        // Step A: Space & Tab Crusher
+                    trashList.forEach(trash => {
+                        streamText = streamText.replace(new RegExp(trash, 'gi'), ' ');
+                    });
+
+                    // Step C: Typo Fixer
+                    streamText = streamText.replace(/•/g, '');
+                    streamText = streamText.replace(/Avallable|Avnitable|Avaltable|Atallabte/gi, 'Available');
+
+                    // Step D: The Chopper
+                    streamText = streamText.replace(/Available/gi, 'Available\n');
+
+                    // Step E: Clean Output
+                    const cleanedText = streamText.split('\n')
                         .map(line => line.replace(/\s+/g, ' ').trim())
-                        // Step B & C: Timestamp Assassin & Garbage Filter
-                        .filter(line => {
-                            if (!line) return false;
-                            if (/^\d{1,2}:\d{2}$/.test(line)) return false; // Kills timestamps
-                            const lowerLine = line.toLowerCase();
-                            return !trashList.some(trash => lowerLine.includes(trash));
-                        })
-                        // Step D: Typo Fixer
-                        .map(line => line.replace(/•/g, '').replace(/Avallable/gi, 'Available').trim())
                         .filter(line => line.length > 0)
-                        // Step E: Orphan Safety Stitcher
-                        .reduce((acc, currentLine) => {
-                            if (acc.length === 0) {
-                                acc.push(currentLine);
-                            } else {
-                                const prevLine = acc[acc.length - 1];
-                                // If previous line doesn't end with "Available", glue this line to it
-                                if (!/available$/i.test(prevLine)) {
-                                    acc[acc.length - 1] = prevLine + ' ' + currentLine;
-                                } else {
-                                    acc.push(currentLine);
-                                }
-                            }
-                            return acc;
-                        }, [])
                         .join('\n');
 
                     if (cleanedText) {
