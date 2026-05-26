@@ -166,7 +166,7 @@
 
     <!-- GLOBAL HEADER -->
     <div id="globalHeader">
-        <div id="versionLabel">v0.14.0</div>
+        <div id="versionLabel">v0.15.0</div>
         <button id="homeBtn" title="Home">
             <svg class="icon" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
         </button>
@@ -365,9 +365,7 @@
                     }
                 });
                 
-                if (document.getElementById('viewHome').classList.contains('active')) {
-                    updateHomePreviews();
-                }
+                updateHomePreviews(); // Unrestricted: Updates instantly in the background!
             });
         }
 
@@ -706,7 +704,7 @@
                         'availability status', 'in stock', 'prepaid', 'wireless', 
                         'dashboard', 'cellular', 'deviceonly', 'total items', 'select a row',
                         'what type', 'what fee', 'what feedba', 'select', 'carrier', '×', 'view inventory',
-                        'store inventory'
+                        'store inventory', 'or . x', 'to view', 'out of stoc'
                     ];
 
                     const cleanedText = lines
@@ -716,6 +714,7 @@
                             l = l.replace(/Avallable|Avnitable|Avaltable|Atallabte/gi, 'Available');
                             l = l.replace(/([a-zA-Z])\s+Available/gi, '$1 1 Available'); // Missing Quantity Fix
                             l = l.replace(/^[Il\-]\s+/i, ''); // Stray UI icon read as I, l, or -
+                            l = l.replace(/IPhone/g, 'iPhone'); // Fix Apple capitalization
                             return l.trim();
                         })
                         // Stage 5: Strict Filter
@@ -744,7 +743,13 @@
 
                     if (cleanedText) {
                         saveState(); 
-                        scannerList.value += (scannerList.value ? '\n' : '') + cleanedText;
+                        
+                        // Stage 7: Intra-Scan Deduplication (The Overlap Fix)
+                        const combinedText = (scannerList.value ? scannerList.value + '\n' : '') + cleanedText;
+                        const uniqueLines = [...new Set(combinedText.split('\n').map(l => l.trim()).filter(l => l))];
+                        scannerList.value = uniqueLines.join('\n');
+                        
+                        // Animation & Scroll
                         scannerList.classList.add('flash-green');
                         scannerList.scrollTop = scannerList.scrollHeight;
                         setTimeout(() => scannerList.classList.remove('flash-green'), 50);
