@@ -166,7 +166,7 @@
 
     <!-- GLOBAL HEADER -->
     <div id="globalHeader">
-        <div id="versionLabel">v0.13.0</div>
+        <div id="versionLabel">v0.14.0</div>
         <button id="homeBtn" title="Home">
             <svg class="icon" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
         </button>
@@ -683,29 +683,63 @@
                 if (!json.IsErroredOnProcessing && json.ParsedResults && json.ParsedResults.length > 0) {
                     const rawText = json.ParsedResults[0].ParsedText;
                     
-                    let streamText = rawText.replace(/\s+/g, ' ');
-                    streamText = streamText.replace(/\b\d{1,2}:\d{2}\b/g, ' '); 
-
-                    const trashList = [
-                        'walmart', 'feedback', 'click any row', 'device model', 
-                        'capacity', 'color', 'availability status', 'in stock', 'out of stock', 
-                        'prepaid', 'wireless', 'dashboard', 'cellular', 'deviceonly', 
-                        'total items', 'show in stock', 'select a row',
-                        'what type', 'what fee', 'what feedba', 'select', 'carrier', '×', 'view inventory',
-                        'store inventory', 'metro prepaid'
+                    // Stage 1: The Garbage Cleaver (Pre-Split)
+                    const cleaverList = [
+                        'please from below', 'in order to view', 'detailed information', 
+                        'make changes', 'show show', 'out of stoc', 'family mobile', 
+                        'straight talk', 'ol t :', '1 t t :', 'ou 1 :', 'x n metro', 
+                        'click any row', '\\(carrier\\)', 't-mobile', 'at&t', 'verizon', 'cricket', 'metro', 'u.s.'
                     ];
                     
-                    trashList.forEach(trash => {
-                        streamText = streamText.replace(new RegExp(trash, 'gi'), ' ');
+                    let preProcessedText = rawText;
+                    cleaverList.forEach(phrase => {
+                        preProcessedText = preProcessedText.replace(new RegExp(phrase, 'gi'), '\n');
                     });
 
-                    streamText = streamText.replace(/•/g, '');
-                    streamText = streamText.replace(/Avallable|Avnitable|Avaltable|Atallabte/gi, 'Available');
-                    streamText = streamText.replace(/Available/gi, 'Available\n');
-
-                    const cleanedText = streamText.split('\n')
+                    // Stage 2: Split & Crush
+                    let lines = preProcessedText.split('\n')
                         .map(line => line.replace(/\s+/g, ' ').trim())
-                        .filter(line => line.length > 0)
+                        .filter(line => line.length > 0);
+
+                    const bannedWords = [
+                        'walmart', 'feedback', 'device model', 'capacity', 'color', 
+                        'availability status', 'in stock', 'prepaid', 'wireless', 
+                        'dashboard', 'cellular', 'deviceonly', 'total items', 'select a row',
+                        'what type', 'what fee', 'what feedba', 'select', 'carrier', '×', 'view inventory',
+                        'store inventory'
+                    ];
+
+                    const cleanedText = lines
+                        // Stage 3 & 4: Auto-Fixes, Typos, and Noise Eraser
+                        .map(line => {
+                            let l = line.replace(/•/g, '');
+                            l = l.replace(/Avallable|Avnitable|Avaltable|Atallabte/gi, 'Available');
+                            l = l.replace(/([a-zA-Z])\s+Available/gi, '$1 1 Available'); // Missing Quantity Fix
+                            l = l.replace(/^[Il\-]\s+/i, ''); // Stray UI icon read as I, l, or -
+                            return l.trim();
+                        })
+                        // Stage 5: Strict Filter
+                        .filter(line => {
+                            if (!line) return false;
+                            if (/^\d{1,2}:\d{2}$/.test(line)) return false; // Kills timestamps
+                            if (/^\d+\s+\d+\s+\d+$/.test(line)) return false; // Kills stray number grids like "19 19 0"
+                            const lowerLine = line.toLowerCase();
+                            return !bannedWords.some(banned => lowerLine.includes(banned));
+                        })
+                        // Stage 6: Orphan Stitcher
+                        .reduce((acc, currentLine) => {
+                            if (acc.length === 0) {
+                                acc.push(currentLine);
+                            } else {
+                                const prevLine = acc[acc.length - 1];
+                                if (!/available$/i.test(prevLine)) {
+                                    acc[acc.length - 1] = prevLine + ' ' + currentLine;
+                                } else {
+                                    acc.push(currentLine);
+                                }
+                            }
+                            return acc;
+                        }, [])
                         .join('\n');
 
                     if (cleanedText) {
