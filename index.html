@@ -47,7 +47,7 @@
         .logo-container img { width: 100%; height: 100%; object-fit: contain; opacity: 0; transition: opacity 0.3s; }
         @keyframes skeletonPulse { 0% { background-color: #222; } 50% { background-color: #333; } 100% { background-color: #222; } }
 
-        input[type="number"], input[type="password"] {
+        input[type="number"] {
             width: 100%; max-width: 300px; padding: 15px; font-size: 1.2rem; text-align: center;
             border-radius: 8px; border: 2px solid #444; background: #fff; color: #000; margin-bottom: 20px; box-sizing: border-box;
         }
@@ -85,9 +85,9 @@
         .carrier-title { font-size: 1.2rem; font-weight: bold; margin-bottom: 5px; }
         .carrier-preview { font-size: 0.85rem; opacity: 0.9; white-space: pre-wrap; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
         .preview-empty { font-style: italic; opacity: 0.6; }
-        #cardATT { background-color: #00a8e0; }
-        #cardVZW { background-color: #ed1c24; }
         #cardTMO { background-color: #e20074; }
+        #cardVZW { background-color: #ed1c24; }
+        #cardATT { background-color: #00a8e0; }
 
         /* --- VIEW 3: EDIT --- */
         .header-row { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 600px; margin-bottom: 10px; }
@@ -108,9 +108,10 @@
         #guidedHeader {
             background: #333; padding: 8px 12px; border-radius: 8px; flex-grow: 1; 
             text-align: center; font-weight: bold; font-size: 0.9rem; cursor: pointer; border: 1px solid #555;
-            display: flex; justify-content: center; align-items: center; gap: 5px;
+            display: flex; justify-content: center; align-items: center; gap: 5px; flex-direction: column;
         }
-        .overwrite-warn { color: #ff9800; font-size: 0.75rem; display: block; }
+        .header-main-text { display: flex; align-items: center; gap: 5px; }
+        .overwrite-warn { color: #ff9800; font-size: 0.75rem; }
 
         #status { font-weight: bold; color: #4CAF50; font-size: 0.8rem; text-align: right; min-width: 100px; }
         .pulsing { animation: pulse 1.5s infinite; }
@@ -118,19 +119,10 @@
 
         .video-container {
             position: relative; width: 100%; max-width: 400px; aspect-ratio: 1 / 1; 
-            border: 3px solid #00ff00; border-radius: 10px; overflow: hidden; background: #000; margin-bottom: 5px; flex-shrink: 0; cursor: pointer; 
+            border: 3px solid #00ff00; border-radius: 10px; overflow: hidden; background: #000; margin-bottom: 10px; flex-shrink: 0; cursor: pointer; 
         }
         .focus-flash { border-color: #ffffff !important; transform: scale(0.97); transition: all 0.2s; }
         video { width: 100%; height: 100%; display: block; object-fit: cover; }
-
-        #pageCarousel {
-            display: flex; gap: 5px; width: 100%; max-width: 600px; margin-bottom: 5px; overflow-x: auto; padding-bottom: 5px;
-        }
-        .page-btn {
-            flex: 1; min-width: 40px; padding: 8px 0; background-color: #333; color: white; border-radius: 5px; font-size: 0.9rem;
-        }
-        .page-btn.active { background-color: #2196F3; font-weight: bold; border: 2px solid #fff; }
-        .page-btn.has-data { border-bottom: 3px solid #4CAF50; }
 
         .scanner-bottom { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; max-width: 600px; flex-grow: 1; min-height: 0; }
         #scannerList {
@@ -147,8 +139,7 @@
         .classic-actions { display: none; }
         .guided-actions { display: none; flex-direction: column; gap: 5px; }
         #doneScannerBtn { background-color: #2196F3; color: white; padding: 15px; width: 100%; }
-        #saveNextPageBtn { background-color: #333; color: white; border: 1px solid #555; padding: 10px; }
-        #saveNextRouteBtn { background-color: #2196F3; color: white; padding: 10px; }
+        #saveNextRouteBtn { background-color: #2196F3; color: white; padding: 15px; font-size: 1.1rem; }
 
         /* --- MODALS --- */
         .modal-overlay {
@@ -175,7 +166,7 @@
 
     <!-- GLOBAL HEADER -->
     <div id="globalHeader">
-        <div id="versionLabel">v0.12.0</div>
+        <div id="versionLabel">v0.13.0</div>
         <button id="homeBtn" title="Home">
             <svg class="icon" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
         </button>
@@ -193,7 +184,7 @@
             <input type="number" pattern="[0-9]*" inputmode="numeric" id="inputPin" placeholder="Enter PIN" required style="-webkit-text-security: disc;">
             <div class="login-controls">
                 <button type="button" id="termsBtn">TERMS OF USE</button>
-                <button type="submit" id="loginSubmitBtn">LOG IN</button>
+                <button type="submit" id="loginSubmitBtn" style="display:none;">LOG IN</button>
             </div>
         </form>
     </div>
@@ -208,17 +199,17 @@
         
         <button id="startPipelineBtn">START SCANNING</button>
         
-        <div class="carrier-card" id="cardATT" data-carrier="ATT">
-            <div class="carrier-title">AT&T</div>
-            <div class="carrier-preview" id="previewATT">Loading...</div>
+        <div class="carrier-card" id="cardTMO" data-carrier="TMO">
+            <div class="carrier-title">T-Mobile</div>
+            <div class="carrier-preview" id="previewTMO">Loading...</div>
         </div>
         <div class="carrier-card" id="cardVZW" data-carrier="VZW">
             <div class="carrier-title">Verizon</div>
             <div class="carrier-preview" id="previewVZW">Loading...</div>
         </div>
-        <div class="carrier-card" id="cardTMO" data-carrier="TMO">
-            <div class="carrier-title">T-Mobile</div>
-            <div class="carrier-preview" id="previewTMO">Loading...</div>
+        <div class="carrier-card" id="cardATT" data-carrier="ATT">
+            <div class="carrier-title">AT&T</div>
+            <div class="carrier-preview" id="previewATT">Loading...</div>
         </div>
     </div>
 
@@ -240,8 +231,11 @@
         <div class="scanner-header">
             <button id="backFromScannerBtn">❮ BACK</button>
             <div id="guidedHeader">
-                <span id="guidedHeaderText">1698 ATT - P1</span>
-                <svg class="icon-sm" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z"/></svg>
+                <div class="header-main-text">
+                    <span id="guidedHeaderText">1698 TMO</span>
+                    <svg class="icon-sm" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z"/></svg>
+                </div>
+                <span id="guidedHeaderWarn" class="overwrite-warn"></span>
             </div>
             <div id="status">Ready.</div>
         </div>
@@ -250,10 +244,8 @@
             <video id="cameraFeed" autoplay playsinline></video>
         </div>
 
-        <div id="pageCarousel"></div>
-
         <div class="scanner-bottom">
-            <textarea id="scannerList" maxlength="15000" readonly placeholder="List memory..."></textarea>
+            <textarea id="scannerList" maxlength="15000" placeholder="List memory..."></textarea>
             
             <div class="scanner-actions">
                 <div class="undo-row">
@@ -267,7 +259,6 @@
                 </div>
                 
                 <div class="guided-actions" id="guidedActions">
-                    <button id="saveNextPageBtn">SAVE & NEXT PAGE (P2)</button>
                     <button id="saveNextRouteBtn">SAVE & GO TO VZW</button>
                 </div>
             </div>
@@ -278,50 +269,67 @@
     <div id="modalOverlay" class="modal-overlay">
         <div id="modalTerms" class="modal-box">
             <h3>Terms of Use</h3><p>Terms of use isn't made yet.</p>
-            <button class="btn-primary" onclick="hideModal()">OK</button>
+            <button class="btn-primary" onclick="window.hideModal()">OK</button>
         </div>
         <div id="modalStore" class="modal-box">
             <h3>Change Store #</h3>
             <input type="number" id="newStoreInput" placeholder="New Store #">
             <div class="modal-btn-row">
-                <button class="btn-secondary" onclick="hideModal()">Cancel</button>
+                <button class="btn-secondary" onclick="window.hideModal()">Cancel</button>
                 <button class="btn-primary" id="confirmStoreChangeBtn">Save</button>
             </div>
         </div>
         <div id="modalBackWarn" class="modal-box">
             <h3>Unsaved Changes!</h3><p>Changes will be lost.</p>
             <div class="modal-btn-row">
-                <button class="btn-secondary" onclick="hideModal()">Cancel</button>
+                <button class="btn-secondary" onclick="window.hideModal()">Cancel</button>
                 <button class="btn-danger" id="confirmBackWarnBtn">Yes, Go Back</button>
             </div>
         </div>
         <div id="modalGuidedRoute" class="modal-box" style="gap:10px;">
             <h3>Change Carrier</h3>
-            <button class="route-btn" onclick="guidedSwitchRoute('ATT')">AT&T</button>
-            <button class="route-btn" onclick="guidedSwitchRoute('VZW')">Verizon</button>
-            <button class="route-btn" onclick="guidedSwitchRoute('TMO')">T-Mobile</button>
+            <button class="route-btn" onclick="window.guidedSwitchRoute('TMO')">T-Mobile</button>
+            <button class="route-btn" onclick="window.guidedSwitchRoute('VZW')">Verizon</button>
+            <button class="route-btn" onclick="window.guidedSwitchRoute('ATT')">AT&T</button>
             <button class="btn-secondary" style="margin-top:10px;" onclick="document.getElementById('storeSelectorBtn').click()">Change Store #</button>
-            <button class="btn-primary" onclick="hideModal()">Cancel</button>
+            <button class="btn-primary" onclick="window.hideModal()">Cancel</button>
         </div>
     </div>
 
     <canvas id="hiddenCanvas"></canvas>
 
-    <script>
+    <!-- FIREBASE INTEGRATION -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, onValue, set, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
         // --- CONFIGURATION ---
         const OCR_API_KEY = 'K83239282988957'; 
         const SECRET_SUFFIX = atob('MTAyMA=='); // "1020"
         const EXPIRY_MS = 8 * 60 * 60 * 1000; 
+        const CARRIER_ORDER = ['TMO', 'VZW', 'ATT'];
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDHVW6d6n-lS43mf9DIsSYJjzBWvk4B1R4",
+            authDomain: "optimizer-data.firebaseapp.com",
+            databaseURL: "https://optimizer-data-default-rtdb.firebaseio.com",
+            projectId: "optimizer-data",
+            storageBucket: "optimizer-data.firebasestorage.app",
+            messagingSenderId: "162386405726",
+            appId: "1:162386405726:web:a5f22c3810152949b947cf"
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
 
         // --- STATE ---
         let currentStore = "";
         let currentCarrier = "";
-        let currentPage = 1;
         let scannerMode = "guided"; 
         let currentStream = null;
         let originalEditText = "";
         let undoStack = []; let redoStack = [];
-        let activeGuidedData = { timestamp: 0, pages: {} };
+        let storeInventoryData = { TMO: null, VZW: null, ATT: null }; // Live synced from Firebase
+        let fbListenerUnsubscribe = null;
 
         // --- DOM ---
         const views = document.querySelectorAll('.view');
@@ -334,53 +342,47 @@
         const editArea = document.getElementById('editArea');
         const scannerList = document.getElementById('scannerList');
 
-        // --- DATA ENGINE ---
-        function getCarrierData(store, carrier) {
-            const raw = localStorage.getItem(`IRIS_${store}_${carrier}`);
-            if (!raw) return { timestamp: Date.now(), pages: {} };
-            try {
-                let data = JSON.parse(raw);
-                if (Date.now() - data.timestamp > EXPIRY_MS) {
-                    localStorage.removeItem(`IRIS_${store}_${carrier}`);
-                    return { timestamp: Date.now(), pages: {} };
-                }
-                return data;
-            } catch (e) { return { timestamp: Date.now(), pages: {} }; }
-        }
-
-        function saveCarrierData(store, carrier, dataObj) {
-            dataObj.timestamp = Date.now();
-            localStorage.setItem(`IRIS_${store}_${carrier}`, JSON.stringify(dataObj));
-        }
-
-        function stitchPages(dataObj) {
-            let seenLines = new Set();
-            let finalLines = [];
-            for(let p=1; p<=7; p++) {
-                if(!dataObj.pages[p]) continue;
-                let lines = dataObj.pages[p].split('\n').map(l=>l.trim()).filter(l=>l);
-                for(let line of lines) {
-                    if(!seenLines.has(line)) {
-                        seenLines.add(line);
-                        finalLines.push(line);
+        // --- FIREBASE REAL-TIME ENGINE ---
+        function subscribeToStore(store) {
+            if (fbListenerUnsubscribe) fbListenerUnsubscribe(); // Detach old
+            const storeRef = ref(db, `inventory/${store}`);
+            
+            fbListenerUnsubscribe = onValue(storeRef, (snapshot) => {
+                const data = snapshot.val() || {};
+                const now = Date.now();
+                
+                CARRIER_ORDER.forEach(c => {
+                    const cData = data[c];
+                    if (cData && cData.last_updated) {
+                        if (now - cData.last_updated > EXPIRY_MS) {
+                            remove(ref(db, `inventory/${store}/${c}`)); // Auto-Wipe
+                            storeInventoryData[c] = null;
+                        } else {
+                            storeInventoryData[c] = cData;
+                        }
+                    } else {
+                        storeInventoryData[c] = null;
                     }
+                });
+                
+                if (document.getElementById('viewHome').classList.contains('active')) {
+                    updateHomePreviews();
                 }
-            }
-            return finalLines.join('\n');
+            });
         }
 
-        function checkAllExpiries() {
-            if(!currentStore) return;
-            ['ATT','VZW','TMO'].forEach(c => getCarrierData(currentStore, c));
+        function saveCarrierData(store, carrier, textContent) {
+            set(ref(db, `inventory/${store}/${carrier}`), {
+                text: textContent,
+                last_updated: Date.now()
+            });
         }
 
         // --- NAVIGATION (HISTORY API) ---
         function navigateTo(viewId, pushState = true) {
             views.forEach(v => v.classList.remove('active'));
             document.getElementById(viewId).classList.add('active');
-            if (pushState) {
-                history.pushState({ view: viewId }, "", "#" + viewId);
-            }
+            if (pushState) history.pushState({ view: viewId }, "", "#" + viewId);
         }
 
         window.addEventListener('popstate', (e) => {
@@ -406,26 +408,26 @@
             }
         };
 
-        function showModal(id) {
+        window.showModal = function(id) {
             modals.forEach(m => m.classList.remove('active'));
             document.getElementById(id).classList.add('active');
             modalOverlay.style.display = 'flex';
-        }
-        function hideModal() {
+        };
+        window.hideModal = function() {
             modalOverlay.style.display = 'none';
             modals.forEach(m => m.classList.remove('active'));
-        }
+        };
 
         document.getElementById('homeBtn').addEventListener('click', () => window.location.href = 'https://spamfan.github.io');
-        document.getElementById('termsBtn').addEventListener('click', () => showModal('modalTerms'));
+        document.getElementById('termsBtn').addEventListener('click', () => window.showModal('modalTerms'));
 
         // --- VIEW 1: LOGIN (AUTO-LOGIN) ---
         function handleLoginSuccess(storeVal) {
             currentStore = storeVal;
             localStorage.setItem('lastStore', storeVal);
             document.getElementById('inputPin').value = ""; 
-            checkAllExpiries();
-            initHomeView();
+            subscribeToStore(currentStore);
+            document.getElementById('displayStore').innerText = currentStore;
             navigateTo('viewHome');
         }
 
@@ -442,25 +444,21 @@
             e.preventDefault();
             const storeVal = document.getElementById('inputStore').value.trim();
             const pinVal = document.getElementById('inputPin').value.trim();
-            if (pinVal === storeVal + SECRET_SUFFIX) {
-                handleLoginSuccess(storeVal);
-            } else {
-                alert("Incorrect App PIN.");
-            }
+            if (pinVal === storeVal + SECRET_SUFFIX) handleLoginSuccess(storeVal);
+            else alert("Incorrect App PIN.");
         });
 
         // --- VIEW 2: HOME ---
-        function initHomeView() {
-            document.getElementById('displayStore').innerText = currentStore;
-            ['ATT', 'VZW', 'TMO'].forEach(c => {
-                const data = getCarrierData(currentStore, c);
-                const stitched = stitchPages(data);
+        function updateHomePreviews() {
+            CARRIER_ORDER.forEach(c => {
+                const cData = storeInventoryData[c];
                 const previewEl = document.getElementById(`preview${c}`);
-                if (!stitched) {
+                if (!cData || !cData.text || cData.text.trim() === "") {
                     previewEl.innerText = "no reports";
                     previewEl.className = "carrier-preview preview-empty";
                 } else {
-                    previewEl.innerText = stitched.length > 80 ? stitched.substring(0, 80) + "..." : stitched;
+                    const txt = cData.text.trim();
+                    previewEl.innerText = txt.length > 80 ? txt.substring(0, 80) + "..." : txt;
                     previewEl.className = "carrier-preview";
                 }
             });
@@ -468,17 +466,17 @@
 
         document.getElementById('storeSelectorBtn').addEventListener('click', () => {
             document.getElementById('newStoreInput').value = currentStore;
-            showModal('modalStore');
+            window.showModal('modalStore');
         });
         document.getElementById('confirmStoreChangeBtn').addEventListener('click', () => {
             const newStore = document.getElementById('newStoreInput').value.trim();
             if (newStore) {
                 currentStore = newStore;
                 localStorage.setItem('lastStore', currentStore);
-                checkAllExpiries();
-                initHomeView();
+                document.getElementById('displayStore').innerText = currentStore;
+                subscribeToStore(currentStore);
             }
-            hideModal();
+            window.hideModal();
         });
 
         document.querySelectorAll('.carrier-card').forEach(card => {
@@ -490,38 +488,35 @@
         });
 
         document.getElementById('startPipelineBtn').addEventListener('click', () => {
-            const carriers = ['ATT', 'VZW', 'TMO'];
-            let target = 'ATT';
-            for (let c of carriers) {
-                if (!stitchPages(getCarrierData(currentStore, c))) { target = c; break; }
+            let target = 'TMO';
+            for (let c of CARRIER_ORDER) {
+                if (!storeInventoryData[c] || !storeInventoryData[c].text.trim()) { target = c; break; }
             }
-            currentCarrier = target; currentPage = 1; scannerMode = "guided";
+            currentCarrier = target; scannerMode = "guided";
             initGuidedScanner();
             navigateTo('viewScanner');
         });
 
-        // --- VIEW 3: EDIT (CLASSIC) ---
+        // --- VIEW 3: EDIT (Classic) ---
         function initEditView() {
             document.getElementById('editTitle').innerText = `${currentCarrier} (${currentStore}) - TAP TO EDIT`;
-            const data = getCarrierData(currentStore, currentCarrier);
-            const stitched = stitchPages(data);
-            editArea.value = stitched;
-            originalEditText = stitched;
+            const data = storeInventoryData[currentCarrier];
+            const txt = data ? data.text : "";
+            editArea.value = txt;
+            originalEditText = txt;
         }
 
         document.getElementById('editBackBtn').addEventListener('click', () => {
-            if (editArea.value !== originalEditText) showModal('modalBackWarn');
+            if (editArea.value !== originalEditText) window.showModal('modalBackWarn');
             else history.back();
         });
         document.getElementById('confirmBackWarnBtn').addEventListener('click', () => {
-            hideModal(); history.back();
+            window.hideModal(); history.back();
         });
 
         document.getElementById('saveEditBtn').addEventListener('click', () => {
-            let data = { timestamp: Date.now(), pages: { 1: editArea.value } };
-            saveCarrierData(currentStore, currentCarrier, data);
+            saveCarrierData(currentStore, currentCarrier, editArea.value);
             originalEditText = editArea.value;
-            
             const btn = document.getElementById('saveEditBtn');
             const origText = btn.innerText;
             btn.innerText = "✔️ SAVED!"; btn.style.backgroundColor = "#4CAF50";
@@ -534,65 +529,39 @@
             navigateTo('viewScanner');
         });
 
-        // --- VIEW 4: SCANNER (DUAL MODE) ---
+        // --- VIEW 4: SCANNER (Unified) ---
         async function initGuidedScanner() {
             document.getElementById('backFromScannerBtn').style.display = 'none';
             document.getElementById('guidedHeader').style.display = 'flex';
-            document.getElementById('pageCarousel').style.display = 'flex';
             document.getElementById('classicActions').style.display = 'none';
             document.getElementById('guidedActions').style.display = 'flex';
             
-            activeGuidedData = getCarrierData(currentStore, currentCarrier);
+            const data = storeInventoryData[currentCarrier];
             
             let warnHtml = "";
-            let stitched = stitchPages(activeGuidedData);
-            if(stitched) {
-                let hrs = Math.floor((Date.now() - activeGuidedData.timestamp) / 3600000);
-                warnHtml = `<span class="overwrite-warn">(Overwrite ${hrs}hr ago)</span>`;
+            if(data && data.text.trim()) {
+                let hrs = Math.floor((Date.now() - data.last_updated) / 3600000);
+                warnHtml = `(Overwrite ${hrs}hr ago)`;
             }
-            document.getElementById('guidedHeaderText').innerHTML = `${currentStore} ${currentCarrier} ${warnHtml} - P${currentPage}`;
+            document.getElementById('guidedHeaderText').innerText = `${currentStore} ${currentCarrier}`;
+            document.getElementById('guidedHeaderWarn').innerText = warnHtml;
 
-            renderPageCarousel();
-            scannerList.value = activeGuidedData.pages[currentPage] || "";
+            scannerList.value = data ? data.text : "";
             undoStack = []; redoStack = [];
             updateGuidedRoutingButtons();
 
             await startCamera();
         }
 
-        function renderPageCarousel() {
-            const carousel = document.getElementById('pageCarousel');
-            carousel.innerHTML = '';
-            for(let i=1; i<=7; i++) {
-                let btn = document.createElement('button');
-                btn.className = `page-btn ${i === currentPage ? 'active' : ''} ${activeGuidedData.pages[i] ? 'has-data' : ''}`;
-                btn.innerText = `P${i}`;
-                btn.onclick = () => {
-                    activeGuidedData.pages[currentPage] = scannerList.value; 
-                    currentPage = i;
-                    scannerList.value = activeGuidedData.pages[currentPage] || "";
-                    undoStack = []; redoStack = [];
-                    renderPageCarousel();
-                    document.getElementById('guidedHeaderText').innerHTML = document.getElementById('guidedHeaderText').innerHTML.replace(/- P\d+/, `- P${currentPage}`);
-                    updateGuidedRoutingButtons();
-                };
-                carousel.appendChild(btn);
-            }
-        }
-
         function updateGuidedRoutingButtons() {
-            let nextP = currentPage < 7 ? currentPage + 1 : 7;
-            document.getElementById('saveNextPageBtn').innerText = `SAVE & NEXT PAGE (P${nextP})`;
-            
-            const order = ['ATT', 'VZW', 'TMO'];
-            let currIdx = order.indexOf(currentCarrier);
+            let currIdx = CARRIER_ORDER.indexOf(currentCarrier);
             let nextCarrier = null;
             
             for(let i=1; i<=3; i++) {
                 let checkIdx = (currIdx + i) % 3;
-                let checkC = order[checkIdx];
+                let checkC = CARRIER_ORDER[checkIdx];
                 if(checkIdx === currIdx) break; 
-                if(!stitchPages(getCarrierData(currentStore, checkC))) {
+                if(!storeInventoryData[checkC] || !storeInventoryData[checkC].text.trim()) {
                     nextCarrier = checkC; break;
                 }
             }
@@ -607,44 +576,28 @@
             }
         }
 
-        document.getElementById('saveNextPageBtn').addEventListener('click', () => {
-            activeGuidedData.pages[currentPage] = scannerList.value;
-            saveCarrierData(currentStore, currentCarrier, activeGuidedData);
-            if (currentPage < 7) {
-                currentPage++;
-                scannerList.value = activeGuidedData.pages[currentPage] || "";
-                undoStack = []; redoStack = [];
-                renderPageCarousel();
-                document.getElementById('guidedHeaderText').innerHTML = document.getElementById('guidedHeaderText').innerHTML.replace(/- P\d+/, `- P${currentPage}`);
-                updateGuidedRoutingButtons();
-            }
-        });
-
         function guidedSaveAndRoute(target) {
-            activeGuidedData.pages[currentPage] = scannerList.value;
-            saveCarrierData(currentStore, currentCarrier, activeGuidedData);
+            saveCarrierData(currentStore, currentCarrier, scannerList.value);
             stopCamera();
             if (target === 'FINISH') {
-                initHomeView(); navigateTo('viewHome');
+                navigateTo('viewHome');
             } else {
-                currentCarrier = target; currentPage = 1;
+                currentCarrier = target; 
                 initGuidedScanner();
             }
         }
 
-        document.getElementById('guidedHeader').addEventListener('click', () => showModal('modalGuidedRoute'));
-        function guidedSwitchRoute(targetCarrier) {
-            hideModal();
-            activeGuidedData.pages[currentPage] = scannerList.value;
-            saveCarrierData(currentStore, currentCarrier, activeGuidedData);
-            currentCarrier = targetCarrier; currentPage = 1;
+        document.getElementById('guidedHeader').addEventListener('click', () => window.showModal('modalGuidedRoute'));
+        window.guidedSwitchRoute = function(targetCarrier) {
+            window.hideModal();
+            saveCarrierData(currentStore, currentCarrier, scannerList.value);
+            currentCarrier = targetCarrier; 
             initGuidedScanner();
-        }
+        };
 
         async function initClassicScanner() {
             document.getElementById('backFromScannerBtn').style.display = 'block';
             document.getElementById('guidedHeader').style.display = 'none';
-            document.getElementById('pageCarousel').style.display = 'none';
             document.getElementById('classicActions').style.display = 'block';
             document.getElementById('guidedActions').style.display = 'none';
             
@@ -730,10 +683,7 @@
                 if (!json.IsErroredOnProcessing && json.ParsedResults && json.ParsedResults.length > 0) {
                     const rawText = json.ParsedResults[0].ParsedText;
                     
-                    // Step A: Crush into single line
                     let streamText = rawText.replace(/\s+/g, ' ');
-
-                    // Step B: Timestamp & Trash Assassin
                     streamText = streamText.replace(/\b\d{1,2}:\d{2}\b/g, ' '); 
 
                     const trashList = [
@@ -749,14 +699,10 @@
                         streamText = streamText.replace(new RegExp(trash, 'gi'), ' ');
                     });
 
-                    // Step C: Typo Fixer
                     streamText = streamText.replace(/•/g, '');
                     streamText = streamText.replace(/Avallable|Avnitable|Avaltable|Atallabte/gi, 'Available');
-
-                    // Step D: The Chopper
                     streamText = streamText.replace(/Available/gi, 'Available\n');
 
-                    // Step E: Clean Output
                     const cleanedText = streamText.split('\n')
                         .map(line => line.replace(/\s+/g, ' ').trim())
                         .filter(line => line.length > 0)
