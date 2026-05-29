@@ -158,6 +158,11 @@
         .btn-danger { background-color: #f44336; color: white; }
         
         .route-btn { background-color: #333; color: white; padding: 15px; font-size: 1.1rem; border: 1px solid #555; }
+        .form-group { margin-bottom: 15px; text-align: left; }
+        .form-group label { display: block; font-size: 0.85rem; color: #aaa; margin-bottom: 5px; }
+        .form-group input { width: 100%; padding: 10px; font-size: 1rem; border-radius: 6px; border: 1px solid #444; background: #fff; color: #000; box-sizing: border-box; }
+        #publishEditBtn, #publishScannerBtn { background-color: #9c27b0; color: white; }
+        #settingsBtn { pointer-events: auto; background: none; border: none; color: white; cursor: pointer; padding: 5px; }
         
         #hiddenCanvas { display: none; }
     </style>
@@ -166,7 +171,12 @@
 
     <!-- GLOBAL HEADER -->
     <div id="globalHeader">
-        <div id="versionLabel">v0.15.0</div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <div id="versionLabel">v0.15.0</div>
+            <button id="settingsBtn" title="GitHub Settings">
+                <svg class="icon" viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
+            </button>
+        </div>
         <button id="homeBtn" title="Home">
             <svg class="icon" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
         </button>
@@ -224,6 +234,7 @@
             <button id="startScannerBtn">ADD FROM SCANNER</button>
             <button id="saveEditBtn">SAVE AS CURRENT</button>
         </div>
+        <button id="publishEditBtn" style="width: 100%; max-width: 600px; margin-top: 10px; padding: 15px; font-size: 1.1rem;">☁️ PUBLISH TO CLOUD</button>
     </div>
 
     <!-- VIEW 4: SCANNER (Dual Mode) -->
@@ -260,6 +271,7 @@
                 
                 <div class="guided-actions" id="guidedActions">
                     <button id="saveNextRouteBtn">SAVE & GO TO VZW</button>
+                    <button id="publishScannerBtn" style="padding: 15px; font-size: 1.1rem;">☁️ PUBLISH TO CLOUD</button>
                 </div>
             </div>
         </div>
@@ -294,6 +306,25 @@
             <button class="btn-secondary" style="margin-top:10px;" onclick="document.getElementById('storeSelectorBtn').click()">Change Store #</button>
             <button class="btn-primary" onclick="window.hideModal()">Cancel</button>
         </div>
+        <div id="modalGhSettings" class="modal-box">
+            <h3>Cloud Publisher</h3>
+            <div class="form-group">
+                <label>GitHub Username</label>
+                <input type="text" id="ghUser" placeholder="e.g. spamfan">
+            </div>
+            <div class="form-group">
+                <label>Repository Name</label>
+                <input type="text" id="ghRepo" placeholder="e.g. optimizer">
+            </div>
+            <div class="form-group">
+                <label>Personal Access Token</label>
+                <input type="password" id="ghToken" placeholder="ghp_...">
+            </div>
+            <div class="modal-btn-row">
+                <button class="btn-secondary" onclick="window.hideModal()">Cancel</button>
+                <button class="btn-primary" id="saveGhSettingsBtn">Save</button>
+            </div>
+        </div>
     </div>
 
     <canvas id="hiddenCanvas"></canvas>
@@ -301,7 +332,7 @@
     <!-- FIREBASE INTEGRATION -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, onValue, set, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, onValue, set, remove, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         // --- CONFIGURATION ---
         const OCR_API_KEY = 'K83239282988957'; 
@@ -418,6 +449,98 @@
 
         document.getElementById('homeBtn').addEventListener('click', () => window.location.href = 'https://spamfan.github.io');
         document.getElementById('termsBtn').addEventListener('click', () => window.showModal('modalTerms'));
+
+        // --- GITHUB PUBLISHER & SETTINGS ---
+        document.getElementById('settingsBtn').addEventListener('click', () => {
+            const config = JSON.parse(localStorage.getItem('gh_config') || '{}');
+            document.getElementById('ghUser').value = config.user || 'spamfan';
+            document.getElementById('ghRepo').value = config.repo || 'optimizer';
+            document.getElementById('ghToken').value = config.token || '';
+            window.showModal('modalGhSettings');
+        });
+
+        document.getElementById('saveGhSettingsBtn').addEventListener('click', () => {
+            const user = document.getElementById('ghUser').value.trim();
+            const repo = document.getElementById('ghRepo').value.trim();
+            const token = document.getElementById('ghToken').value.trim();
+            if (!user || !repo || !token) return alert("All fields required");
+            localStorage.setItem('gh_config', JSON.stringify({ user, repo, token }));
+            window.hideModal();
+        });
+
+        async function publishToGitHub(btnElement) {
+            const config = JSON.parse(localStorage.getItem('gh_config') || '{}');
+            if (!config.token) {
+                alert("Please configure GitHub settings first (Gear icon).");
+                return;
+            }
+            
+            const origText = btnElement.innerText;
+            btnElement.innerText = "☁️ PUBLISHING...";
+            btnElement.disabled = true;
+
+            try {
+                // 1. Fetch entire inventory from Firebase
+                const snapshot = await get(ref(db, 'inventory'));
+                const allData = snapshot.val() || {};
+                
+                // 2. Format and encode
+                const content = btoa(JSON.stringify({ inventory: allData }, null, 2));
+                const url = `https://api.github.com/repos/${config.user}/${config.repo}/contents/inventory_data.json`;
+                
+                // 3. Get SHA (Needed for overwriting existing files in GitHub)
+                const getReq = await fetch(url, { headers: { 'Authorization': `token ${config.token}` } });
+                const getRes = await getReq.json();
+                const sha = getRes.sha; 
+                
+                // 4. PUT Update
+                const bodyPayload = {
+                    message: `IRIS Mobile Update ${new Date().toISOString()}`,
+                    content: content
+                };
+                if (sha) bodyPayload.sha = sha;
+
+                const putReq = await fetch(url, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${config.token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(bodyPayload)
+                });
+
+                if (putReq.ok) {
+                    btnElement.innerText = "✅ PUBLISHED!";
+                    btnElement.style.backgroundColor = "#4CAF50";
+                } else {
+                    const err = await putReq.json();
+                    alert(`GitHub Error: ${err.message}`);
+                    btnElement.innerText = "❌ FAILED";
+                    btnElement.style.backgroundColor = "#f44336";
+                }
+            } catch (e) {
+                alert(`Publish Error: ${e.message}`);
+                btnElement.innerText = "❌ FAILED";
+                btnElement.style.backgroundColor = "#f44336";
+            }
+            
+            setTimeout(() => {
+                btnElement.innerText = origText;
+                btnElement.disabled = false;
+                btnElement.style.backgroundColor = ""; // Reset to CSS default
+            }, 3000);
+        }
+
+        document.getElementById('publishEditBtn').addEventListener('click', async function() {
+            saveCarrierData(currentStore, currentCarrier, editArea.value);
+            originalEditText = editArea.value;
+            await publishToGitHub(this);
+        });
+
+        document.getElementById('publishScannerBtn').addEventListener('click', async function() {
+            saveCarrierData(currentStore, currentCarrier, scannerList.value);
+            await publishToGitHub(this);
+        });
 
         // --- VIEW 1: LOGIN (AUTO-LOGIN) ---
         function handleLoginSuccess(storeVal) {
