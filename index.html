@@ -165,6 +165,20 @@
         #settingsBtn { pointer-events: auto; background: none; border: none; color: white; cursor: pointer; padding: 5px; }
         
         #hiddenCanvas { display: none; }
+        
+        /* --- VIEW 5: CROP --- */
+        #uploadImageBtn { background-color: #2196F3; color: white; padding: 8px; font-size: 1rem; flex-shrink: 0; }
+        .crop-header { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 600px; margin-bottom: 20px; }
+        #cancelCropBtn { background-color: #555; color: white; padding: 5px 15px; }
+        .crop-container {
+            position: relative; width: 100%; max-width: 400px; aspect-ratio: 1 / 1; 
+            border: 3px solid #2196F3; border-radius: 10px; overflow: hidden; background: #222; margin-bottom: 20px;
+        }
+        #cropImage { position: absolute; transform-origin: top left; cursor: grab; }
+        #cropImage:active { cursor: grabbing; }
+        .zoom-controls { display: flex; align-items: center; gap: 10px; width: 100%; max-width: 400px; margin-bottom: 20px; }
+        .zoom-controls input[type="range"] { flex-grow: 1; }
+        #confirmCropBtn { background-color: #4CAF50; color: white; padding: 15px; width: 100%; max-width: 400px; font-size: 1.2rem; }
     </style>
 </head>
 <body>
@@ -172,7 +186,7 @@
     <!-- GLOBAL HEADER -->
     <div id="globalHeader">
         <div style="display: flex; align-items: center; gap: 10px;">
-            <div id="versionLabel">v0.15.1</div>
+            <div id="versionLabel">v0.15.2</div>
             <button id="settingsBtn" title="GitHub Settings">
                 <svg class="icon" viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
             </button>
@@ -248,6 +262,8 @@
                 </div>
                 <span id="guidedHeaderWarn" class="overwrite-warn"></span>
             </div>
+            <button id="uploadImageBtn" title="Upload Image"><svg class="icon" viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg></button>
+            <input type="file" id="imageUploadInput" accept="image/*" style="display: none;">
             <div id="status">Ready.</div>
         </div>
 
@@ -275,6 +291,23 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- VIEW 5: CROP -->
+    <div id="viewCrop" class="view">
+        <div class="crop-header">
+            <button id="cancelCropBtn">❮ CANCEL</button>
+            <h3>Crop Image</h3>
+            <div style="width: 70px;"></div> <!-- Spacer -->
+        </div>
+        <div class="crop-container" id="cropContainer">
+            <img id="cropImage" src="" alt="Crop Preview">
+        </div>
+        <div class="zoom-controls">
+            <span>🔍</span>
+            <input type="range" id="cropZoomSlider" min="0.1" max="3" step="0.01" value="1">
+        </div>
+        <button id="confirmCropBtn">CONFIRM CROP & SCAN</button>
     </div>
 
     <!-- MODALS -->
@@ -779,19 +812,13 @@
             if (redoStack.length > 0) { undoStack.push(scannerList.value); scannerList.value = redoStack.pop(); }
         });
 
-        // --- OCR LOGIC (Continuous Stream Parser) ---
-        document.getElementById('scanToListBtn').addEventListener('click', async () => {
-            if (!currentStream || video.videoWidth === 0) return;
-            const btn = document.getElementById('scanToListBtn');
-            btn.disabled = true; statusEl.innerText = "📸 Analyzing..."; statusEl.classList.add('pulsing');
-
-            const size = Math.min(video.videoWidth, video.videoHeight);
-            canvas.width = size; canvas.height = size;
-            ctx.drawImage(video, (video.videoWidth - size) / 2, (video.videoHeight - size) / 2, size, size, 0, 0, size, size);
-
+        // --- OCR LOGIC (Modular Pipeline) ---
+        async function processOCR(base64Image) {
+            statusEl.innerText = "📸 Analyzing..."; statusEl.classList.add('pulsing');
+            
             const formData = new FormData();
             formData.append('apikey', OCR_API_KEY);
-            formData.append('base64Image', canvas.toDataURL('image/jpeg', 0.8));
+            formData.append('base64Image', base64Image);
             formData.append('OCREngine', '2'); 
             formData.append('scale', 'true'); 
             formData.append('isTable', 'true'); 
@@ -908,8 +935,142 @@
                 } else { statusEl.innerText = "API Error / No text."; statusEl.style.color = "#f44336"; }
             } catch (err) { statusEl.classList.remove('pulsing'); statusEl.innerText = "Network Error."; statusEl.style.color = "#f44336"; }
 
-            btn.disabled = false;
             setTimeout(() => { if (statusEl.innerText === "Added!" || statusEl.innerText.includes("empty")) { statusEl.innerText = "Ready."; statusEl.style.color = "#4CAF50"; } }, 2000);
+        }
+
+        document.getElementById('scanToListBtn').addEventListener('click', async () => {
+            if (!currentStream || video.videoWidth === 0) return;
+            const btn = document.getElementById('scanToListBtn');
+            btn.disabled = true;
+
+            const size = Math.min(video.videoWidth, video.videoHeight);
+            canvas.width = size; canvas.height = size;
+            ctx.drawImage(video, (video.videoWidth - size) / 2, (video.videoHeight - size) / 2, size, size, 0, 0, size, size);
+
+            await processOCR(canvas.toDataURL('image/jpeg', 0.8));
+            btn.disabled = false;
+        });
+
+        // --- CROP ENGINE LOGIC ---
+        let cropImg = document.getElementById('cropImage');
+        let cropContainer = document.getElementById('cropContainer');
+        let cropZoomSlider = document.getElementById('cropZoomSlider');
+        let imgState = { x: 0, y: 0, scale: 1, baseW: 0, baseH: 0, isDragging: false, startX: 0, startY: 0 };
+
+        document.getElementById('uploadImageBtn').addEventListener('click', () => {
+            document.getElementById('imageUploadInput').click();
+        });
+
+        document.getElementById('imageUploadInput').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                cropImg.onload = () => {
+                    // Reset State and Calculate Aspect Ratio
+                    const containerSize = cropContainer.clientWidth;
+                    const aspect = cropImg.naturalWidth / cropImg.naturalHeight;
+                    
+                    if (aspect > 1) {
+                        imgState.baseH = containerSize;
+                        imgState.baseW = containerSize * aspect;
+                    } else {
+                        imgState.baseW = containerSize;
+                        imgState.baseH = containerSize / aspect;
+                    }
+                    
+                    imgState.scale = 1;
+                    imgState.x = (containerSize - imgState.baseW) / 2;
+                    imgState.y = (containerSize - imgState.baseH) / 2;
+                    cropZoomSlider.value = 1;
+                    
+                    updateCropTransform();
+                    stopCamera();
+                    navigateTo('viewCrop');
+                };
+                cropImg.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+            e.target.value = ''; // Reset input so same file can be chosen again
+        });
+
+        document.getElementById('cancelCropBtn').addEventListener('click', () => {
+            navigateTo('viewScanner');
+            startCamera();
+        });
+
+        function updateCropTransform() {
+            cropImg.style.width = `${imgState.baseW}px`;
+            cropImg.style.height = `${imgState.baseH}px`;
+            cropImg.style.transform = `translate(${imgState.x}px, ${imgState.y}px) scale(${imgState.scale})`;
+        }
+
+        cropZoomSlider.addEventListener('input', (e) => {
+            const newScale = parseFloat(e.target.value);
+            // Zoom towards the center of the container
+            const cx = cropContainer.clientWidth / 2;
+            const cy = cropContainer.clientWidth / 2;
+            
+            const dx = cx - imgState.x;
+            const dy = cy - imgState.y;
+            
+            imgState.x = cx - (dx * (newScale / imgState.scale));
+            imgState.y = cy - (dy * (newScale / imgState.scale));
+            imgState.scale = newScale;
+            updateCropTransform();
+        });
+
+        // Touch & Mouse Panning
+        const startDrag = (clientX, clientY) => {
+            imgState.isDragging = true;
+            imgState.startX = clientX - imgState.x;
+            imgState.startY = clientY - imgState.y;
+        };
+        const moveDrag = (clientX, clientY) => {
+            if (!imgState.isDragging) return;
+            imgState.x = clientX - imgState.startX;
+            imgState.y = clientY - imgState.startY;
+            updateCropTransform();
+        };
+        const endDrag = () => { imgState.isDragging = false; };
+
+        cropImg.addEventListener('mousedown', (e) => { e.preventDefault(); startDrag(e.clientX, e.clientY); });
+        window.addEventListener('mousemove', (e) => moveDrag(e.clientX, e.clientY));
+        window.addEventListener('mouseup', endDrag);
+
+        cropImg.addEventListener('touchstart', (e) => startDrag(e.touches[0].clientX, e.touches[0].clientY));
+        window.addEventListener('touchmove', (e) => {
+            if (imgState.isDragging) e.preventDefault(); // Prevent scrolling while panning
+            moveDrag(e.touches[0].clientX, e.touches[0].clientY);
+        }, { passive: false });
+        window.addEventListener('touchend', endDrag);
+
+        // Confirm Crop & Send to OCR
+        document.getElementById('confirmCropBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('confirmCropBtn');
+            btn.disabled = true;
+            btn.innerText = "PROCESSING...";
+
+            // Math to extract the high-res crop exactly matching the 1:1 view
+            const containerSize = cropContainer.clientWidth;
+            const ratio = cropImg.naturalWidth / imgState.baseW;
+            
+            const sourceX = (-imgState.x / imgState.scale) * ratio;
+            const sourceY = (-imgState.y / imgState.scale) * ratio;
+            const sourceSize = (containerSize / imgState.scale) * ratio;
+
+            canvas.width = sourceSize;
+            canvas.height = sourceSize;
+            
+            ctx.drawImage(cropImg, sourceX, sourceY, sourceSize, sourceSize, 0, 0, sourceSize, sourceSize);
+            const base64Crop = canvas.toDataURL('image/jpeg', 0.9);
+
+            btn.disabled = false;
+            btn.innerText = "CONFIRM CROP & SCAN";
+
+            navigateTo('viewScanner');
+            await processOCR(base64Crop);
+            startCamera();
         });
     </script>
 </body>
