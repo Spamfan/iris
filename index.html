@@ -186,7 +186,7 @@
     <!-- GLOBAL HEADER -->
     <div id="globalHeader">
         <div style="display: flex; align-items: center; gap: 10px;">
-            <div id="versionLabel">v0.15.3</div>
+            <div id="versionLabel">v0.15.4</div>
             <button id="settingsBtn" title="GitHub Settings">
                 <svg class="icon" viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
             </button>
@@ -831,23 +831,28 @@
                 if (!json.IsErroredOnProcessing && json.ParsedResults && json.ParsedResults.length > 0) {
                     const rawText = json.ParsedResults[0].ParsedText;
                     
-                    // Stage 1: The Garbage Cleaver (Pre-Split)
-                    const cleaverList = [
-                        'please from below', 'in order to view', 'detailed information', 
-                        'make changes', 'show show', 'out of stoc', 'family mobile', 
-                        'straight talk', 'ol t :', '1 t t :', 'ou 1 :', 'x n metro', 
-                        'click any row', '\\(carrier\\)', 't-mobile', 'at&t', 'verizon', 'cricket', 'metro', 'u.s.',
-                        'or \\. x', 'or \\. s w x', 'prepai k', 'prepai', 'what ty', 'what fe', 'feedb:', 'sele'
-                    ];
-                    
                     let preProcessedText = rawText;
+
+                    // Stage 1: The Garbage Cleaver V3 (Pre-Split Wildcards)
+                    const wildcardGarbage = [
+                        /please.*?below/gi, /or \..*?d d d/gi, /or \..*?s w x/gi, 
+                        /verizc.*?d d/gi, /prepai.*?k/gi
+                    ];
+                    wildcardGarbage.forEach(rx => { preProcessedText = preProcessedText.replace(rx, '\n'); });
+
+                    const cleaverList = [
+                        'in order to view', 'detailed information', 'make changes', 'show show', 'out of stoc', 
+                        'family mobile', 'straight talk', 'ol t :', '1 t t :', 'ou 1 :', 'x n metro', 
+                        'click any row', '\\(carrier\\)', 't-mobile', 'at&t', 'verizon', 'cricket', 'metro', 'u.s.',
+                        'prepai', 'what ty', 'what fe', 'feedb:', 'sele'
+                    ];
                     cleaverList.forEach(phrase => {
                         preProcessedText = preProcessedText.replace(new RegExp(phrase, 'gi'), '\n');
                     });
 
-                    // Stage 2: Split & Crush
+                    // Stage 2: Split
                     let lines = preProcessedText.split('\n')
-                        .map(line => line.replace(/\s+/g, ' ').trim())
+                        .map(line => line.trim())
                         .filter(line => line.length > 0);
 
                     const bannedWords = [
@@ -859,13 +864,15 @@
                     ];
 
                     const cleanedText = lines
-                        // Stage 3 & 4: Auto-Fixes, Typos, and Noise Eraser
+                        // Stage 3 & 4: Auto-Fixes, Typos, and Space Crushers
                         .map(line => {
                             let l = line.replace(/•/g, '');
                             l = l.replace(/Avallable|Avnitable|Avaltable|Atallabte/gi, 'available');
+                            l = l.replace(/(\d)available/gi, '$1 available'); // Missing space fix (e.g. 1available)
                             l = l.replace(/([a-zA-Z])\s+available/gi, '$1 1 available'); // Missing Quantity Fix
                             l = l.replace(/^[Il\-]\s+/i, ''); // Stray UI icon read as I, l, or -
                             l = l.replace(/IPhone/g, 'iPhone'); // Fix Apple capitalization
+                            l = l.replace(/\s{2,}/g, ' '); // Ultimate Space Crusher
                             return l.trim();
                         })
                         // Stage 5: Strict Filter
@@ -874,16 +881,18 @@
                             if (/^\d{1,2}:\d{2}$/.test(line)) return false; // Kills timestamps
                             if (/^\d+\s+\d+\s+\d+$/.test(line)) return false; // Kills stray number grids
                             const lowerLine = line.toLowerCase();
-                            if (lowerLine === 'what' || lowerLine === 'k' || lowerLine === 'sele') return false; // Kills isolated garbage
+                            if (lowerLine === 'what' || lowerLine === 'k' || lowerLine === 'sele' || lowerLine === 'd') return false; // Kills isolated garbage
                             return !bannedWords.some(banned => lowerLine.includes(banned));
                         })
-                        // Stage 6: Orphan Stitcher
+                        // Stage 6: Smart Orphan Stitcher
                         .reduce((acc, currentLine) => {
                             if (acc.length === 0) {
                                 acc.push(currentLine);
                             } else {
                                 const prevLine = acc[acc.length - 1];
-                                if (!/available/i.test(prevLine)) {
+                                const startsWithBrand = /^(Galaxy|iPhone|Moto|TCL|Classic|Pixel|Revvl|Apple Watch|AW )/i.test(currentLine);
+                                
+                                if (!/available/i.test(prevLine) && !startsWithBrand) {
                                     acc[acc.length - 1] = prevLine + ' ' + currentLine;
                                 } else {
                                     acc.push(currentLine);
@@ -912,7 +921,10 @@
                         
                         // Stage 7: Intra-Scan Deduplication & Safe Header Preservation
                         let headerLines = [];
-                        const allLines = (currentText + '\n' + cleanedText).split('\n').map(l => l.trim()).filter(l => l);
+                        // Apply Ultimate Space Crusher to the entire combined block to ensure exact matching
+                        const allLines = (currentText + '\n' + cleanedText).split('\n')
+                            .map(l => l.replace(/\s{2,}/g, ' ').trim())
+                            .filter(l => l);
                         
                         if (allLines.length >= 3 && ['T-Mobile', 'Verizon', 'AT&T'].includes(allLines[0])) {
                             headerLines = allLines.splice(0, 3);
