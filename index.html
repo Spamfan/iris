@@ -118,8 +118,8 @@
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
 
         .video-container {
-            position: relative; width: 100%; max-width: 400px; aspect-ratio: 1 / 1; 
-            border: 3px solid #00ff00; border-radius: 10px; overflow: hidden; background: #000; margin-bottom: 10px; flex-shrink: 0; cursor: pointer; 
+            position: relative; width: 100%; max-width: 400px; 
+            border: 3px solid #00ff00; border-radius: 10px; overflow: hidden; background: #000; margin-bottom: 10px; flex-shrink: 0; cursor: pointer; transition: aspect-ratio 0.3s;
         }
         .focus-flash { border-color: #ffffff !important; transform: scale(0.97); transition: all 0.2s; }
         video { width: 100%; height: 100%; display: block; object-fit: cover; }
@@ -171,8 +171,8 @@
         .crop-header { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 600px; margin-bottom: 20px; }
         #cancelCropBtn { background-color: #555; color: white; padding: 5px 15px; }
         .crop-container {
-            position: relative; width: 100%; max-width: 400px; aspect-ratio: 1 / 1; 
-            border: 3px solid #2196F3; border-radius: 10px; overflow: hidden; background: #222; margin-bottom: 20px;
+            position: relative; width: 100%; max-width: 400px; 
+            border: 3px solid #2196F3; border-radius: 10px; overflow: hidden; background: #222; margin-bottom: 20px; transition: aspect-ratio 0.3s;
         }
         #cropImage { position: absolute; transform-origin: top left; cursor: grab; }
         #cropImage:active { cursor: grabbing; }
@@ -183,10 +183,9 @@
 </head>
 <body>
 
-    <!-- GLOBAL HEADER -->
     <div id="globalHeader">
         <div style="display: flex; align-items: center; gap: 10px;">
-            <div id="versionLabel">v0.15.6</div>
+            <div id="versionLabel">v0.15.7</div>
             <button id="settingsBtn" title="GitHub Settings">
                 <svg class="icon" viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
             </button>
@@ -196,7 +195,6 @@
         </button>
     </div>
 
-    <!-- VIEW 1: LOGIN -->
     <div id="viewLogin" class="view active">
         <div class="logo-container">
             <img src="https://i.imgur.com/f8ucThF.jpeg" alt="Project IRIS Logo" onload="this.style.opacity=1; this.parentElement.style.animation='none';">
@@ -213,7 +211,6 @@
         </form>
     </div>
 
-    <!-- VIEW 2: HOME -->
     <div id="viewHome" class="view">
         <div class="store-selector" id="storeSelectorBtn">
             Selected store:<br>
@@ -237,7 +234,6 @@
         </div>
     </div>
 
-    <!-- VIEW 3: EDIT (Classic) -->
     <div id="viewEdit" class="view">
         <div class="header-row">
             <button id="editBackBtn">❮ BACK</button>
@@ -251,7 +247,6 @@
         <button id="publishEditBtn" style="width: 100%; max-width: 600px; margin-top: 10px; padding: 15px; font-size: 1.1rem;">☁️ PUBLISH TO CLOUD</button>
     </div>
 
-    <!-- VIEW 4: SCANNER (Dual Mode) -->
     <div id="viewScanner" class="view">
         <div class="scanner-header">
             <button id="backFromScannerBtn">❮ BACK</button>
@@ -293,13 +288,11 @@
         </div>
     </div>
 
-    <!-- VIEW 5: CROP -->
     <div id="viewCrop" class="view">
         <div class="crop-header">
             <button id="cancelCropBtn">❮ CANCEL</button>
             <h3>Crop Image</h3>
-            <div style="width: 70px;"></div> <!-- Spacer -->
-        </div>
+            <div style="width: 70px;"></div> </div>
         <div class="crop-container" id="cropContainer">
             <img id="cropImage" src="" alt="Crop Preview">
         </div>
@@ -310,7 +303,6 @@
         <button id="confirmCropBtn">CONFIRM CROP & SCAN</button>
     </div>
 
-    <!-- MODALS -->
     <div id="modalOverlay" class="modal-overlay">
         <div id="modalTerms" class="modal-box">
             <h3>Terms of Use</h3><p>Terms of use isn't made yet.</p>
@@ -362,7 +354,6 @@
 
     <canvas id="hiddenCanvas"></canvas>
 
-    <!-- FIREBASE INTEGRATION -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, onValue, set, remove, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
@@ -684,6 +675,13 @@
         });
 
         // --- VIEW 4: SCANNER (Unified) ---
+        function updateScannerRatio() {
+            const isEmpty = scannerList.value.trim() === "";
+            const targetRatio = isEmpty ? "16 / 9" : "5 / 4";
+            document.getElementById('videoContainer').style.aspectRatio = targetRatio;
+            document.getElementById('cropContainer').style.aspectRatio = targetRatio;
+        }
+
         async function initGuidedScanner() {
             document.getElementById('backFromScannerBtn').style.display = 'none';
             document.getElementById('guidedHeader').style.display = 'flex';
@@ -703,6 +701,7 @@
             scannerList.value = data ? data.text : "";
             undoStack = []; redoStack = [];
             updateGuidedRoutingButtons();
+            updateScannerRatio();
 
             await startCamera();
         }
@@ -758,6 +757,7 @@
             scannerList.value = editArea.value;
             undoStack = []; redoStack = [];
             statusEl.innerText = "Ready.";
+            updateScannerRatio();
             await startCamera();
         }
 
@@ -845,7 +845,8 @@
                         'family mobile', 'straight talk', 'ol t :', '1 t t :', 'ou 1 :', 'x n metro', 
                         'click any row', '\\(carrier\\)', 't-mobile', 'at&t', 'verizon', 'cricket', 'metro', 'u.s.',
                         'prepai', 'what ty', 'what fe', 'feedb:', 'sele',
-                        'capac', 'pacity', 'eedba', 'feedb', 'ventor', 'ct a r', 'of stoc', 'in stoc', 'board /', 'device m', 'lity sta', 'repaid', 'ellular', 'ceonly'
+                        'capac', 'pacity', 'eedba', 'feedb', 'ventor', 'ct a r', 'of stoc', 'in stoc', 'board /', 'device m', 'lity sta', 'repaid', 'ellular', 'ceonly',
+                        'view in', 'dash', 'devi', 'odel', 'ity :'
                     ];
                     cleaverList.forEach(phrase => {
                         preProcessedText = preProcessedText.replace(new RegExp(phrase, 'gi'), '\n');
@@ -862,7 +863,8 @@
                         'dashboard', 'cellular', 'deviceonly', 'total items', 'select a row',
                         'what type', 'what fee', 'what feedba', 'select', 'carrier', '×', 'view inventory',
                         'store inventory', 'or . x', 'to view', 'out of stoc', 'what',
-                        'capac', 'pacity', 'eedba', 'feedb', 'ventor', 'ct a r', 'of stoc', 'in stoc', 'board /', 'device m', 'lity sta', 'repaid', 'ellular', 'ceonly'
+                        'capac', 'pacity', 'eedba', 'feedb', 'ventor', 'ct a r', 'of stoc', 'in stoc', 'board /', 'device m', 'lity sta', 'repaid', 'ellular', 'ceonly',
+                        'view in', 'dash', 'devi', 'odel', 'ity :'
                     ];
 
                     const cleanedText = lines
@@ -874,7 +876,8 @@
                             l = l.replace(/([a-zA-Z])\s+available/gi, '$1 1 available'); // Missing Quantity Fix
                             l = l.replace(/^[Il\-]\s+/i, ''); // Stray UI icon read as I, l, or -
                             l = l.replace(/IPhone/g, 'iPhone'); // Fix Apple capitalization
-                            l = l.replace(/\s+/g, ' '); // Ultimate Space Crusher V2 (Kills Tabs & Multi-spaces)
+                            l = l.replace(/\s+/g, ' '); // Ultimate Space Crusher V2
+                            l = l.replace(/\d+\s*(?:GB|TB)\s+(\d+\s*(?:GB|TB))/gi, '$1'); // Double-Capacity Squasher
                             return l.trim();
                         })
                         // Stage 5: Strict Filter
@@ -882,6 +885,7 @@
                             if (!line) return false;
                             if (/^\d{1,2}:\d{2}$/.test(line)) return false; // Kills timestamps
                             if (/^\d+\s+\d+\s+\d+$/.test(line)) return false; // Kills stray number grids
+                            if (!/(Galaxy|iPhone|Moto|TCL|Classic|Pixel|Revvl|Apple Watch|AW )/i.test(line)) return false; // The Brand Enforcer (Orphan Killer)
                             const lowerLine = line.toLowerCase();
                             if (lowerLine === 'what' || lowerLine === 'k' || lowerLine === 'sele' || lowerLine === 'd') return false; // Kills isolated garbage
                             return !bannedWords.some(banned => lowerLine.includes(banned));
@@ -945,6 +949,7 @@
                         scannerList.scrollTop = scannerList.scrollHeight;
                         setTimeout(() => scannerList.classList.remove('flash-green'), 50);
                         statusEl.innerText = "Added!"; 
+                        updateScannerRatio(); // Dynamically update viewfinder ratio for next scan
                     } else { statusEl.innerText = "Filtered to empty."; statusEl.style.color = "#ff9800"; }
                 } else { statusEl.innerText = "API Error / No text."; statusEl.style.color = "#f44336"; }
             } catch (err) { statusEl.classList.remove('pulsing'); statusEl.innerText = "Network Error."; statusEl.style.color = "#f44336"; }
@@ -957,9 +962,24 @@
             const btn = document.getElementById('scanToListBtn');
             btn.disabled = true;
 
-            const size = Math.min(video.videoWidth, video.videoHeight);
-            canvas.width = size; canvas.height = size;
-            ctx.drawImage(video, (video.videoWidth - size) / 2, (video.videoHeight - size) / 2, size, size, 0, 0, size, size);
+            const isEmpty = scannerList.value.trim() === "";
+            const targetRatio = isEmpty ? (16 / 9) : (5 / 4);
+
+            let cropWidth = video.videoWidth;
+            let cropHeight = video.videoWidth / targetRatio;
+
+            if (cropHeight > video.videoHeight) {
+                cropHeight = video.videoHeight;
+                cropWidth = video.videoHeight * targetRatio;
+            }
+
+            canvas.width = cropWidth;
+            canvas.height = cropHeight;
+            
+            const startX = (video.videoWidth - cropWidth) / 2;
+            const startY = (video.videoHeight - cropHeight) / 2;
+
+            ctx.drawImage(video, startX, startY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
 
             await processOCR(canvas.toDataURL('image/jpeg', 0.8));
             btn.disabled = false;
@@ -998,21 +1018,25 @@
                     
                     // Delay calculation by 50ms so the browser can paint the DOM and give us a real clientWidth instead of 0px
                     setTimeout(() => {
-                        // Reset State and Calculate Aspect Ratio
-                        const containerSize = cropContainer.clientWidth;
-                        const aspect = cropImg.naturalWidth / cropImg.naturalHeight;
+                        updateScannerRatio(); // Ensure correct ratio is applied to container before measuring
                         
-                        if (aspect > 1) {
-                            imgState.baseH = containerSize;
-                            imgState.baseW = containerSize * aspect;
+                        // Reset State and Calculate Aspect Ratio
+                        const containerW = cropContainer.clientWidth;
+                        const containerH = cropContainer.clientHeight;
+                        const aspect = cropImg.naturalWidth / cropImg.naturalHeight;
+                        const containerAspect = containerW / containerH;
+                        
+                        if (aspect > containerAspect) {
+                            imgState.baseH = containerH;
+                            imgState.baseW = containerH * aspect;
                         } else {
-                            imgState.baseW = containerSize;
-                            imgState.baseH = containerSize / aspect;
+                            imgState.baseW = containerW;
+                            imgState.baseH = containerW / aspect;
                         }
                         
                         imgState.scale = 1;
-                        imgState.x = (containerSize - imgState.baseW) / 2;
-                        imgState.y = (containerSize - imgState.baseH) / 2;
+                        imgState.x = (containerW - imgState.baseW) / 2;
+                        imgState.y = (containerH - imgState.baseH) / 2;
                         cropZoomSlider.value = 1;
                         
                         updateCropTransform();
@@ -1039,7 +1063,7 @@
             const newScale = parseFloat(e.target.value);
             // Zoom towards the center of the container
             const cx = cropContainer.clientWidth / 2;
-            const cy = cropContainer.clientWidth / 2;
+            const cy = cropContainer.clientHeight / 2;
             
             const dx = cx - imgState.x;
             const dy = cy - imgState.y;
@@ -1081,18 +1105,20 @@
             btn.disabled = true;
             btn.innerText = "PROCESSING...";
 
-            // Math to extract the high-res crop exactly matching the 1:1 view
-            const containerSize = cropContainer.clientWidth;
+            // Math to extract the high-res crop exactly matching the dynamic view
+            const containerW = cropContainer.clientWidth;
+            const containerH = cropContainer.clientHeight;
             const ratio = cropImg.naturalWidth / imgState.baseW;
             
             const sourceX = (-imgState.x / imgState.scale) * ratio;
             const sourceY = (-imgState.y / imgState.scale) * ratio;
-            const sourceSize = (containerSize / imgState.scale) * ratio;
+            const sourceW = (containerW / imgState.scale) * ratio;
+            const sourceH = (containerH / imgState.scale) * ratio;
 
-            canvas.width = sourceSize;
-            canvas.height = sourceSize;
+            canvas.width = sourceW;
+            canvas.height = sourceH;
             
-            ctx.drawImage(cropImg, sourceX, sourceY, sourceSize, sourceSize, 0, 0, sourceSize, sourceSize);
+            ctx.drawImage(cropImg, sourceX, sourceY, sourceW, sourceH, 0, 0, sourceW, sourceH);
             const base64Crop = canvas.toDataURL('image/jpeg', 0.9);
 
             btn.disabled = false;
