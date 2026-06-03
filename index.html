@@ -185,7 +185,7 @@
 
     <div id="globalHeader">
         <div style="display: flex; align-items: center; gap: 10px;">
-            <div id="versionLabel">v0.15.7</div>
+            <div id="versionLabel">v0.15.8</div>
             <button id="settingsBtn" title="GitHub Settings">
                 <svg class="icon" viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
             </button>
@@ -286,6 +286,14 @@
                 </div>
             </div>
         </div>
+        
+        <div id="devConsoleWrapper" style="display: none; flex-direction: column; width: 100%; max-width: 600px; margin-top: 10px; flex-shrink: 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center; background: #333; padding: 5px 10px; border-radius: 8px 8px 0 0;">
+                <span style="font-size: 0.8rem; font-weight: bold; color: #fff;">Developer Console</span>
+                <button id="copyIrisLogBtn" style="padding: 5px 10px; font-size: 0.8rem; background: #555; color: white;">Copy Log</button>
+            </div>
+            <pre id="devConsoleOutput" style="margin: 0; padding: 10px; background: #000; color: #0f0; font-family: monospace; font-size: 0.75rem; height: 150px; overflow-y: auto; border: 1px solid #444; border-top: none; border-radius: 0 0 8px 8px; white-space: pre-wrap; word-wrap: break-word; text-align: left;"></pre>
+        </div>
     </div>
 
     <div id="viewCrop" class="view">
@@ -332,7 +340,12 @@
             <button class="btn-primary" onclick="window.hideModal()">Cancel</button>
         </div>
         <div id="modalGhSettings" class="modal-box">
-            <h3>Cloud Publisher</h3>
+            <h3>Settings</h3>
+            <div class="form-group" style="display: flex; align-items: center; gap: 10px; justify-content: center;">
+                <input type="checkbox" id="devModeToggle" style="width: 20px; height: 20px; margin: 0;">
+                <label style="margin: 0; font-size: 1rem; color: #fff;">Show Developer Console</label>
+            </div>
+            <div style="width: 100%; height: 1px; background: #444; margin: 5px 0;"></div>
             <div class="form-group">
                 <label>GitHub Username</label>
                 <input type="text" id="ghUser" placeholder="e.g. spamfan">
@@ -388,6 +401,15 @@
 
         // --- DOM ---
         const views = document.querySelectorAll('.view');
+        const devConsoleOutput = document.getElementById('devConsoleOutput');
+        
+        // --- LOGGER ---
+        function irisLog(title, data) {
+            if (!devConsoleOutput) return;
+            const ts = new Date().toLocaleTimeString();
+            devConsoleOutput.textContent += `\n========== ${title} [${ts}] ==========\n${data}\n`;
+            devConsoleOutput.scrollTop = devConsoleOutput.scrollHeight;
+        }
         const modalOverlay = document.getElementById('modalOverlay');
         const modals = document.querySelectorAll('.modal-box');
         const video = document.getElementById('cameraFeed');
@@ -475,6 +497,25 @@
         document.getElementById('termsBtn').addEventListener('click', () => window.showModal('modalTerms'));
 
         // --- GITHUB PUBLISHER & SETTINGS ---
+        document.getElementById('devModeToggle').addEventListener('change', (e) => {
+            document.getElementById('devConsoleWrapper').style.display = e.target.checked ? 'flex' : 'none';
+        });
+
+        document.getElementById('copyIrisLogBtn').addEventListener('click', () => {
+            const text = devConsoleOutput.textContent;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(() => alert('Log copied!')).catch(() => legacyCopyIris(text));
+            } else {
+                legacyCopyIris(text);
+            }
+        });
+
+        function legacyCopyIris(text) {
+            const ta = document.createElement('textarea'); ta.value = text;
+            ta.style.position = 'fixed'; ta.style.opacity = 0; document.body.appendChild(ta);
+            ta.focus(); ta.select(); try { document.execCommand('copy'); alert('Log copied!'); } catch (err) { alert('Copy failed.'); } document.body.removeChild(ta);
+        }
+
         document.getElementById('settingsBtn').addEventListener('click', () => {
             const config = JSON.parse(localStorage.getItem('gh_config') || '{}');
             document.getElementById('ghUser').value = config.user || 'spamfan';
@@ -830,6 +871,7 @@
 
                 if (!json.IsErroredOnProcessing && json.ParsedResults && json.ParsedResults.length > 0) {
                     const rawText = json.ParsedResults[0].ParsedText;
+                    irisLog('[RAW OCR]', rawText);
                     
                     let preProcessedText = rawText;
 
@@ -856,6 +898,8 @@
                     let lines = preProcessedText.split('\n')
                         .map(line => line.trim())
                         .filter(line => line.length > 0);
+
+                    irisLog('[STAGE 2: POST-CLEAVER]', lines.join('\n'));
 
                     const bannedWords = [
                         'walmart', 'feedback', 'device model', 'capacity', 'color', 
@@ -912,6 +956,8 @@
                         .filter(line => /available$/i.test(line))
                         .join('\n');
 
+                    irisLog('[STAGE 5: POST-FILTER]', cleanedText || "--- NO PHONES SURVIVED ---");
+
                     if (cleanedText) {
                         saveState(); 
                         
@@ -938,6 +984,8 @@
                         
                         const uniqueItems = [...new Set(allLines)];
                         
+                        irisLog('[STAGE 7: FINAL]', uniqueItems.join('\n'));
+                        
                         if (headerLines.length > 0) {
                             scannerList.value = headerLines.join('\n') + '\n\n' + uniqueItems.join('\n');
                         } else {
@@ -951,8 +999,14 @@
                         statusEl.innerText = "Added!"; 
                         updateScannerRatio(); // Dynamically update viewfinder ratio for next scan
                     } else { statusEl.innerText = "Filtered to empty."; statusEl.style.color = "#ff9800"; }
-                } else { statusEl.innerText = "API Error / No text."; statusEl.style.color = "#f44336"; }
-            } catch (err) { statusEl.classList.remove('pulsing'); statusEl.innerText = "Network Error."; statusEl.style.color = "#f44336"; }
+                } else { 
+                    irisLog('[ERROR]', 'API Error or No text found in response.');
+                    statusEl.innerText = "API Error / No text."; statusEl.style.color = "#f44336"; 
+                }
+            } catch (err) { 
+                irisLog('[ERROR]', `Network/Crash Error: ${err.message}`);
+                statusEl.classList.remove('pulsing'); statusEl.innerText = "Network Error."; statusEl.style.color = "#f44336"; 
+            }
 
             setTimeout(() => { if (statusEl.innerText === "Added!" || statusEl.innerText.includes("empty")) { statusEl.innerText = "Ready."; statusEl.style.color = "#4CAF50"; } }, 2000);
         }
