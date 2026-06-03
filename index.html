@@ -185,7 +185,7 @@
 
     <div id="globalHeader">
         <div style="display: flex; align-items: center; gap: 10px;">
-            <div id="versionLabel">v0.15.9</div>
+            <div id="versionLabel">v0.15.10</div>
             <button id="settingsBtn" title="GitHub Settings">
                 <svg class="icon" viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
             </button>
@@ -915,11 +915,14 @@
                         // Stage 3 & 4: Auto-Fixes, Typos, and Space Crushers
                         .map(line => {
                             let l = line.replace(/•/g, '');
-                            l = l.replace(/Avallable|Avnitable|Avaltable|Atallabte/gi, 'available');
+                            l = l.replace(/Avallable|Avnitable|Avaltable|Atallabte|Availabie|Avalablel|Avalable/gi, 'available');
                             l = l.replace(/(\d)available/gi, '$1 available'); // Missing space fix (e.g. 1available)
                             l = l.replace(/([a-zA-Z])\s+available/gi, '$1 1 available'); // Missing Quantity Fix
-                            l = l.replace(/^[Il\-]\s+/i, ''); // Stray UI icon read as I, l, or -
+                            l = l.replace(/^[Il\-Uu]\s+/i, ''); // Stray UI icon read as I, l, -, U, or u
                             l = l.replace(/IPhone/g, 'iPhone'); // Fix Apple capitalization
+                            l = l.replace(/126G5/gi, '128GB'); // Fix common capacity typo
+                            l = l.replace(/BGB/gi, '8GB'); // Fix common capacity typo
+                            l = l.replace(/UBISCH/gi, ''); // Purge specific artifact
                             l = l.replace(/\s+/g, ' '); // Ultimate Space Crusher V2
                             l = l.replace(/\d+\s*(?:GB|TB)\s+(\d+\s*(?:GB|TB))/gi, '$1'); // Double-Capacity Squasher
                             return l.trim();
@@ -934,23 +937,33 @@
                             if (lowerLine === 'what' || lowerLine === 'sele') return false; 
                             return !bannedWords.some(banned => lowerLine.includes(banned));
                         })
-                        // Stage 6: Omni-Directional Stitcher
+                        // Stage 6: Omni-Directional Stitcher V2
                         .reduce((acc, currentLine) => {
                             if (acc.length === 0) {
                                 acc.push(currentLine);
                             } else {
                                 const prevLine = acc[acc.length - 1];
-                                const currentHasBrand = /^(Galaxy|iPhone|Moto|TCL|Classic|Pixel|Revvl|Apple Watch|AW )/i.test(currentLine);
-                                const prevHasBrand = /(Galaxy|iPhone|Moto|TCL|Classic|Pixel|Revvl|Apple Watch|AW )/i.test(prevLine);
+                                const brandRegex = /(Galaxy|iPhone|Moto|TCL|Classic|Pixel|Revvl|Apple Watch|AW )/i;
+                                
+                                const currentHasBrand = brandRegex.test(currentLine);
+                                const prevHasBrand = brandRegex.test(prevLine);
+                                const currentHasAvail = /available/i.test(currentLine);
                                 const prevHasAvail = /available/i.test(prevLine);
 
-                                if (!prevHasAvail && !currentHasBrand) {
-                                    // Forward Stitching (e.g., [Brand] + [Color/Qty])
+                                if (prevHasAvail && currentHasAvail) {
+                                    // Condition 1 (Overload Preventer): Two distinct quantities, do not merge
+                                    acc.push(currentLine);
+                                } else if (!prevHasBrand && !currentHasBrand) {
+                                    // Condition 2 (Orphan + Orphan): Combine separated attributes
                                     acc[acc.length - 1] = prevLine + ' ' + currentLine;
-                                } else if (currentHasBrand && prevHasAvail && !prevHasBrand) {
-                                    // Reverse Stitching (e.g., [Color/Qty] + [Brand])
+                                } else if (currentHasBrand && !prevHasBrand) {
+                                    // Condition 3 (Reverse Stitch): Brand found, append buffered attributes
                                     acc[acc.length - 1] = currentLine + ' ' + prevLine;
+                                } else if (prevHasBrand && !currentHasBrand) {
+                                    // Condition 4 (Forward Stitch): Attributes found after Brand
+                                    acc[acc.length - 1] = prevLine + ' ' + currentLine;
                                 } else {
+                                    // Condition 5 (Distinct Items): Fallback
                                     acc.push(currentLine);
                                 }
                             }
