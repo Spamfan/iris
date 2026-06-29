@@ -8,7 +8,7 @@
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f4f6f8; color: #111111;
+            background-color: #f0f2f5; color: #1f2937;
             margin: 0; padding: 0; height: 100vh; height: 100dvh; 
             box-sizing: border-box; overflow: hidden; display: flex; flex-direction: column;
         }
@@ -25,8 +25,9 @@
         }
         #versionLabel { color: #888; font-size: 0.9rem; font-weight: bold; }
         #homeBtn {
-            pointer-events: auto; background: none; border: 2px solid #ccc;
-            border-radius: 8px; color: #111; padding: 5px 8px; cursor: pointer; background-color: #e0e0e0;
+            pointer-events: auto; background: none; border: 1px solid #d1d5db;
+            border-radius: 8px; color: #374151; padding: 5px 8px; cursor: pointer; background-color: #e5e7eb;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
 
         /* --- VIEW CONTAINERS --- */
@@ -49,13 +50,15 @@
 
         input[type="number"] {
             width: 100%; max-width: 300px; padding: 15px; font-size: 1.2rem; text-align: center;
-            border-radius: 8px; border: 2px solid #ccc; background: #fff; color: #000; margin-bottom: 20px; box-sizing: border-box;
+            border-radius: 8px; border: 1px solid #d1d5db; background: #fff; color: #1f2937; margin-bottom: 20px; box-sizing: border-box;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
 
         button {
             padding: 12px; font-size: 1rem; font-weight: bold; border: none; border-radius: 8px;
             cursor: pointer; transition: opacity 0.2s; -webkit-tap-highlight-color: transparent;
             user-select: none; display: flex; justify-content: center; align-items: center; gap: 5px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
         button:active { opacity: 0.7; }
         button:disabled { background-color: #555 !important; color: #888 !important; }
@@ -63,17 +66,18 @@
         /* --- VIEW 1: LOGIN --- */
         #loginForm { display: flex; flex-direction: column; align-items: center; width: 100%; }
         .login-controls { display: flex; gap: 10px; width: 100%; max-width: 300px; }
-        #termsBtn { background-color: #ccc; color: #000; flex: 1; }
-        #loginSubmitBtn { background-color: #4CAF50; color: #fff; flex: 1; }
+        #termsBtn { background-color: #d1d5db; color: #1f2937; flex: 1; }
+        #loginSubmitBtn { background-color: #22c55e; color: #fff; flex: 1; }
 
         /* --- VIEW 2: HOME --- */
         .store-selector {
             background-color: #ffffff; padding: 10px 20px; border-radius: 8px;
             font-size: 1.2rem; font-weight: bold; margin-bottom: 20px;
-            cursor: pointer; border: 2px solid #ccc; text-align: center; color: #111;
+            cursor: pointer; border: 1px solid #d1d5db; text-align: center; color: #1f2937;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
         #startPipelineBtn {
-            width: 100%; max-width: 400px; background-color: #4CAF50; color: white;
+            width: 100%; max-width: 400px; background-color: #22c55e; color: white;
             font-size: 1.4rem; padding: 20px; margin-bottom: 20px; border-radius: 12px;
         }
         .carrier-card {
@@ -91,55 +95,62 @@
 
         /* --- VIEW 3: EDIT --- */
         .header-row { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 600px; margin-bottom: 10px; }
-        #editBackBtn { background-color: #e0e0e0; color: #111; font-size: 1rem; padding: 8px 15px; }
-        #editTitle { font-size: 1.1rem; color: #111; font-weight: bold; flex-grow: 1; text-align: right; }
+        #editBackBtn { background-color: #e5e7eb; color: #374151; font-size: 1rem; padding: 8px 15px; }
+        #editTitle { font-size: 1.1rem; color: #1f2937; font-weight: bold; flex-grow: 1; text-align: right; }
         #editArea {
-            width: 100%; max-width: 600px; flex-grow: 1; background: #ffffff; color: #000; border: 1px solid #ccc;
+            width: 100%; max-width: 600px; flex-grow: 1; background: #ffffff; color: #1f2937; border: 1px solid #d1d5db;
             border-radius: 8px; padding: 15px; font-size: 1rem; resize: none; box-sizing: border-box; margin-bottom: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
         .edit-controls { display: flex; gap: 10px; width: 100%; max-width: 600px; }
-        #startScannerBtn { background-color: #4CAF50; color: white; flex: 1; font-size: 1.1rem; }
-        #saveEditBtn { background-color: #2196F3; color: white; flex: 1; font-size: 1.1rem; }
+        #startScannerBtn { background-color: #22c55e; color: white; flex: 1; font-size: 1.1rem; }
+        #saveEditBtn { background-color: #3b82f6; color: white; flex: 1; font-size: 1.1rem; }
 
         /* --- VIEW 4: SCANNER --- */
         .scanner-header { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 600px; margin-bottom: 5px; }
-        #backFromScannerBtn { background-color: #e0e0e0; color: #111; padding: 5px 15px; display: none; }
+        #backFromScannerBtn { background-color: #e5e7eb; color: #374151; padding: 5px 15px; display: none; }
         
         #guidedHeader {
             background: #ffffff; padding: 8px 12px; border-radius: 8px; flex-grow: 1; 
-            text-align: center; font-weight: bold; font-size: 0.9rem; cursor: pointer; border: 1px solid #ccc;
-            display: flex; justify-content: center; align-items: center; gap: 5px; flex-direction: column; color: #111;
+            text-align: center; font-weight: bold; font-size: 0.9rem; cursor: pointer; border: 1px solid #d1d5db;
+            display: flex; justify-content: center; align-items: center; gap: 5px; flex-direction: column; color: #1f2937;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
         .header-main-text { display: flex; align-items: center; gap: 5px; }
         .overwrite-warn { color: #ff9800; font-size: 0.75rem; }
 
-        #status { font-weight: bold; color: #4CAF50; font-size: 0.8rem; text-align: right; min-width: 100px; }
+        #status { font-weight: bold; color: #22c55e; font-size: 0.8rem; text-align: right; min-width: 100px; }
         .pulsing { animation: pulse 1.5s infinite; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
 
         .video-container {
             position: relative; width: 100%; max-width: 400px; 
-            border: 3px solid #4CAF50; border-radius: 10px; overflow: hidden; background: #000; margin-bottom: 10px; flex-shrink: 0; cursor: pointer; transition: aspect-ratio 0.3s;
+            border: 3px solid #22c55e; border-radius: 10px; overflow: hidden; background: #000; margin-bottom: 10px; flex-shrink: 0; cursor: pointer; transition: aspect-ratio 0.3s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
         .focus-flash { border-color: #ffffff !important; transform: scale(0.97); transition: all 0.2s; }
         video { width: 100%; height: 100%; display: block; object-fit: cover; }
 
-        .scanner-bottom { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; max-width: 600px; flex-grow: 1; min-height: 0; }
+        .scanner-bottom { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 600px; flex-grow: 1; min-height: 0; }
         #scannerList {
-            width: 100%; height: 100%; background: #ffffff; color: #000; border: 1px solid #ccc; border-radius: 8px; padding: 10px;
-            font-size: 0.85rem; resize: none; box-sizing: border-box; cursor: pointer; transition: background-color 1s ease-out;
+            width: 100%; height: 100%; background: #ffffff; color: #1f2937; border: 1px solid #d1d5db; border-radius: 8px; padding: 10px;
+            font-size: 0.65rem; resize: none; box-sizing: border-box; cursor: pointer; transition: background-color 1s ease-out;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
         .flash-green { background-color: #c8e6c9 !important; transition: none !important; }
         
-        .scanner-actions { display: flex; flex-direction: column; gap: 8px; }
+        .scanner-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .action-col-left, .action-col-right { display: flex; flex-direction: column; gap: 10px; }
+        
         .undo-row { display: flex; gap: 5px; }
-        .undo-row button { flex: 1; background-color: #e0e0e0; color: #111; padding: 8px; }
-        #scanToListBtn { background-color: #4CAF50; color: white; flex-grow: 1; font-size: 1.2rem; }
+        .undo-row button { flex: 1; background-color: #e5e7eb; color: #374151; padding: 8px; }
+        #scanToListBtn { background-color: #22c55e; color: white; flex-grow: 1; font-size: 2rem; }
         
         .classic-actions { display: none; }
-        .guided-actions { display: none; flex-direction: column; gap: 5px; }
-        #doneScannerBtn { background-color: #2196F3; color: white; padding: 15px; width: 100%; }
-        #saveNextRouteBtn { background-color: #2196F3; color: white; padding: 15px; font-size: 1.1rem; }
+        .guided-actions { display: flex; flex-direction: column; gap: 10px; flex-grow: 1; }
+        .guided-actions button { flex-grow: 1; }
+        #doneScannerBtn { background-color: #3b82f6; color: white; padding: 15px; width: 100%; }
+        #saveNextRouteBtn { background-color: #3b82f6; color: white; padding: 15px; font-size: 1.1rem; }
 
         /* --- MODALS --- */
         .modal-overlay {
@@ -148,44 +159,46 @@
         }
         .modal-box {
             display: none; background: #ffffff; padding: 25px; border-radius: 15px;
-            border: 2px solid #ccc; width: 100%; max-width: 350px; text-align: center; flex-direction: column; gap: 15px; color: #111;
+            border: 1px solid #d1d5db; width: 100%; max-width: 350px; text-align: center; flex-direction: column; gap: 15px; color: #1f2937;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
         .modal-box.active { display: flex; }
         .modal-btn-row { display: flex; gap: 10px; }
         .modal-btn-row button { flex: 1; }
-        .btn-secondary { background-color: #e0e0e0; color: #111; }
-        .btn-primary { background-color: #4CAF50; color: white; }
-        .btn-danger { background-color: #f44336; color: white; }
+        .btn-secondary { background-color: #e5e7eb; color: #374151; }
+        .btn-primary { background-color: #22c55e; color: white; }
+        .btn-danger { background-color: #ef4444; color: white; }
         
-        .route-btn { background-color: #e0e0e0; color: #111; padding: 15px; font-size: 1.1rem; border: 1px solid #ccc; }
+        .route-btn { background-color: #e5e7eb; color: #374151; padding: 15px; font-size: 1.1rem; border: 1px solid #d1d5db; }
         .form-group { margin-bottom: 15px; text-align: left; }
-        .form-group label { display: block; font-size: 0.85rem; color: #555; margin-bottom: 5px; }
-        .form-group input { width: 100%; padding: 10px; font-size: 1rem; border-radius: 6px; border: 1px solid #ccc; background: #fff; color: #000; box-sizing: border-box; }
-        #publishEditBtn, #publishScannerBtn { background-color: #9c27b0; color: white; }
-        #settingsBtn { pointer-events: auto; background: none; border: none; color: #111; cursor: pointer; padding: 5px; }
+        .form-group label { display: block; font-size: 0.85rem; color: #4b5563; margin-bottom: 5px; }
+        .form-group input { width: 100%; padding: 10px; font-size: 1rem; border-radius: 6px; border: 1px solid #d1d5db; background: #fff; color: #1f2937; box-sizing: border-box; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        #publishEditBtn, #publishScannerBtn { background-color: #a855f7; color: white; }
+        #settingsBtn { pointer-events: auto; background: none; border: none; color: #1f2937; cursor: pointer; padding: 5px; }
         
         #hiddenCanvas { display: none; }
         
         /* --- VIEW 5: CROP --- */
-        #uploadImageBtn { background-color: #2196F3; color: white; padding: 8px; font-size: 1rem; flex-shrink: 0; }
+        #uploadImageBtn { background-color: #3b82f6; color: white; padding: 8px; font-size: 1rem; flex-shrink: 0; }
         .crop-header { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 600px; margin-bottom: 20px; }
-        #cancelCropBtn { background-color: #e0e0e0; color: #111; padding: 5px 15px; }
+        #cancelCropBtn { background-color: #e5e7eb; color: #374151; padding: 5px 15px; }
         .crop-container {
             position: relative; width: 100%; max-width: 400px; 
-            border: 3px solid #2196F3; border-radius: 10px; overflow: hidden; background: #222; margin-bottom: 20px; transition: aspect-ratio 0.3s;
+            border: 3px solid #3b82f6; border-radius: 10px; overflow: hidden; background: #222; margin-bottom: 20px; transition: aspect-ratio 0.3s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
         #cropImage { position: absolute; transform-origin: top left; cursor: grab; }
         #cropImage:active { cursor: grabbing; }
         .zoom-controls { display: flex; align-items: center; gap: 10px; width: 100%; max-width: 400px; margin-bottom: 20px; }
         .zoom-controls input[type="range"] { flex-grow: 1; }
-        #confirmCropBtn { background-color: #4CAF50; color: white; padding: 15px; width: 100%; max-width: 400px; font-size: 1.2rem; }
+        #confirmCropBtn { background-color: #22c55e; color: white; padding: 15px; width: 100%; max-width: 400px; font-size: 1.2rem; }
     </style>
 </head>
 <body>
 
     <div id="globalHeader">
         <div style="display: flex; align-items: center; gap: 10px;">
-            <div id="versionLabel">v0.16</div>
+            <div id="versionLabel">v0.17</div>
             <button id="settingsBtn" title="GitHub Settings">
                 <svg class="icon" viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
             </button>
@@ -270,19 +283,23 @@
             <textarea id="scannerList" maxlength="15000" placeholder="List memory..."></textarea>
             
             <div class="scanner-actions">
-                <div class="undo-row">
-                    <button id="undoBtn" title="Undo"><svg class="icon" viewBox="0 0 24 24"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C20.48 10.3 16.94 8 12.5 8z"/></svg></button>
-                    <button id="redoBtn" title="Redo"><svg class="icon" viewBox="0 0 24 24"><path d="M11.5 8C15.94 8 19.52 10.3 20.9 14.12l-2.37.78C17.45 11.71 14.46 9.4 10.92 9.4c-1.96 0-3.73.72-5.12 1.88L9.42 14.9H.42v-9l3.6 3.6C5.87 8.99 8.27 8 10.92 8z"/></svg></button>
+                <div class="action-col-left">
+                    <div class="classic-actions" id="classicActions">
+                        <button id="doneScannerBtn">DONE WITH SCANNER</button>
+                    </div>
+                    
+                    <div class="guided-actions" id="guidedActions">
+                        <button id="saveNextRouteBtn">SAVE & GO TO VZW</button>
+                        <button id="publishScannerBtn" style="padding: 15px; font-size: 1.1rem;">☁️ PUBLISH TO CLOUD</button>
+                    </div>
                 </div>
-                <button id="scanToListBtn">SCAN TO LIST</button>
-                
-                <div class="classic-actions" id="classicActions">
-                    <button id="doneScannerBtn">DONE WITH SCANNER</button>
-                </div>
-                
-                <div class="guided-actions" id="guidedActions">
-                    <button id="saveNextRouteBtn">SAVE & GO TO VZW</button>
-                    <button id="publishScannerBtn" style="padding: 15px; font-size: 1.1rem;">☁️ PUBLISH TO CLOUD</button>
+
+                <div class="action-col-right">
+                    <div class="undo-row">
+                        <button id="undoBtn" title="Undo"><svg class="icon" viewBox="0 0 24 24"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C20.48 10.3 16.94 8 12.5 8z"/></svg></button>
+                        <button id="redoBtn" title="Redo"><svg class="icon" viewBox="0 0 24 24" style="transform: scaleX(-1);"><path d="M11.5 8C15.94 8 19.52 10.3 20.9 14.12l-2.37.78C17.45 11.71 14.46 9.4 10.92 9.4c-1.96 0-3.73.72-5.12 1.88L9.42 14.9H.42v-9l3.6 3.6C5.87 8.99 8.27 8 10.92 8z"/></svg></button>
+                    </div>
+                    <button id="scanToListBtn">SCAN</button>
                 </div>
             </div>
         </div>
@@ -576,17 +593,17 @@
 
                 if (putReq.ok) {
                     btnElement.innerText = "✅ PUBLISHED!";
-                    btnElement.style.backgroundColor = "#4CAF50";
+                    btnElement.style.backgroundColor = "#22c55e";
                 } else {
                     const err = await putReq.json();
                     alert(`GitHub Error: ${err.message}`);
                     btnElement.innerText = "❌ FAILED";
-                    btnElement.style.backgroundColor = "#f44336";
+                    btnElement.style.backgroundColor = "#ef4444";
                 }
             } catch (e) {
                 alert(`Publish Error: ${e.message}`);
                 btnElement.innerText = "❌ FAILED";
-                btnElement.style.backgroundColor = "#f44336";
+                btnElement.style.backgroundColor = "#ef4444";
             }
             
             setTimeout(() => {
@@ -705,8 +722,8 @@
             originalEditText = editArea.value;
             const btn = document.getElementById('saveEditBtn');
             const origText = btn.innerText;
-            btn.innerText = "✔️ SAVED!"; btn.style.backgroundColor = "#4CAF50";
-            setTimeout(() => { btn.innerText = origText; btn.style.backgroundColor = "#2196F3"; }, 2000);
+            btn.innerText = "✔️ SAVED!"; btn.style.backgroundColor = "#22c55e";
+            setTimeout(() => { btn.innerText = origText; btn.style.backgroundColor = ""; }, 2000);
         });
 
         document.getElementById('startScannerBtn').addEventListener('click', () => {
@@ -717,7 +734,7 @@
 
         // --- VIEW 4: SCANNER (Unified) ---
         function updateScannerRatio() {
-            const targetRatio = "16 / 9";
+            const targetRatio = "5 / 4";
             document.getElementById('videoContainer').style.aspectRatio = targetRatio;
             document.getElementById('cropContainer').style.aspectRatio = targetRatio;
         }
@@ -1008,14 +1025,14 @@
                     } else { statusEl.innerText = "Filtered to empty."; statusEl.style.color = "#ff9800"; }
                 } else { 
                     irisLog('[ERROR]', 'API Error or No text found in response.');
-                    statusEl.innerText = "API Error / No text."; statusEl.style.color = "#f44336"; 
+                    statusEl.innerText = "API Error / No text."; statusEl.style.color = "#ef4444"; 
                 }
             } catch (err) { 
                 irisLog('[ERROR]', `Network/Crash Error: ${err.message}`);
-                statusEl.classList.remove('pulsing'); statusEl.innerText = "Network Error."; statusEl.style.color = "#f44336"; 
+                statusEl.classList.remove('pulsing'); statusEl.innerText = "Network Error."; statusEl.style.color = "#ef4444"; 
             }
 
-            setTimeout(() => { if (statusEl.innerText === "Added!" || statusEl.innerText.includes("empty")) { statusEl.innerText = "Ready."; statusEl.style.color = "#4CAF50"; } }, 2000);
+            setTimeout(() => { if (statusEl.innerText === "Added!" || statusEl.innerText.includes("empty")) { statusEl.innerText = "Ready."; statusEl.style.color = "#22c55e"; } }, 2000);
         }
 
         document.getElementById('scanToListBtn').addEventListener('click', async () => {
@@ -1023,7 +1040,7 @@
             const btn = document.getElementById('scanToListBtn');
             btn.disabled = true;
 
-            const targetRatio = (16 / 9);
+            const targetRatio = (5 / 4);
 
             let cropWidth = video.videoWidth;
             let cropHeight = video.videoWidth / targetRatio;
