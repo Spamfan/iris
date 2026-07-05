@@ -189,6 +189,32 @@
         
         #hiddenCanvas { display: none; }
         
+        /* --- VIEW 0: DESKTOP INTERCEPT --- */
+        #viewDesktopBlock {
+            padding: 60px 40px 40px 40px; 
+            align-items: flex-start; background-color: #f0f2f5; 
+        }
+        .desktop-content { display: flex; align-items: center; gap: 30px; margin-top: 20px; }
+        .qr-container {
+            width: 200px; height: 200px; background-color: #e0e0e0; border-radius: 8px;
+            display: flex; justify-content: center; align-items: center; overflow: hidden;
+            animation: skeletonPulse 1.5s infinite; flex-shrink: 0; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .qr-container img { width: 100%; height: 100%; object-fit: contain; opacity: 0; transition: opacity 0.3s; }
+        .desktop-text { font-size: 1.5rem; font-weight: bold; color: #111; max-width: 400px; line-height: 1.4; text-align: left; }
+        #continueDesktopBtn {
+            margin-top: auto; background: none; border: none; color: #6b7280; font-size: 0.9rem; 
+            cursor: pointer; padding: 10px 0; box-shadow: none; align-self: flex-start; text-decoration: none;
+        }
+        #continueDesktopBtn:hover { color: #374151; text-decoration: underline; }
+        
+        #cameraPauseOverlay {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.85); display: none; flex-direction: column;
+            justify-content: center; align-items: center; color: white; z-index: 10;
+        }
+        #cameraPauseOverlay.active { display: flex; }
+
         /* --- VIEW 5: CROP --- */
         #uploadImageBtn { background-color: #3b82f6; color: white; padding: 8px; font-size: 1rem; flex-shrink: 0; }
         .crop-header { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 600px; margin-bottom: 20px; }
@@ -212,11 +238,28 @@
             <button id="settingsBtn" title="GitHub Settings">
                 <svg class="icon" viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
             </button>
-            <div id="versionLabel">v0.0.1</div>
+            <div id="versionLabel">v0.0.2</div>
         </div>
         <button id="homeBtn" title="Home">
             <svg class="icon" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
         </button>
+    </div>
+
+    <div id="viewDesktopBlock" class="view">
+        <div class="logo-container" style="align-self: center; margin-bottom: 40px;">
+            <img src="https://i.imgur.com/mpGGTgA.png" alt="Scanner Logo" onload="this.style.opacity=1; this.parentElement.style.animation='none'; this.parentElement.style.backgroundColor='transparent';">
+        </div>
+        
+        <div class="desktop-content">
+            <div class="qr-container">
+                <img src="https://i.imgur.com/7OyGqTbl.png" alt="QR Code" onload="this.style.opacity=1; this.parentElement.style.animation='none'; this.parentElement.style.backgroundColor='transparent';">
+            </div>
+            <div class="desktop-text">
+                Scanner is only made for mobile devices. Scan the QR code or visit this site on mobile to start.
+            </div>
+        </div>
+        
+        <button id="continueDesktopBtn">continue on desktop anyway (not recommended)</button>
     </div>
 
     <div id="viewLogin" class="view active">
@@ -296,6 +339,10 @@
         </div>
 
         <div class="video-container" id="videoContainer">
+            <div id="cameraPauseOverlay">
+                <svg class="icon" style="width: 48px; height: 48px; margin-bottom: 10px; fill: #9ca3af;" viewBox="0 0 24 24"><path d="M3.2 2.06L1.79 3.47 4.53 6.2 3 7.71v10.59c0 1.1.9 2 2 2h14c.24 0 .47-.05.67-.13l1.86 1.86 1.41-1.41L3.2 2.06zM5 18.3V7.71l1.79-1.79 11.27 11.27c-.2.06-.43.11-.67.11H5zm14-3.59l-2-2V7.71H8.12l-2-2h4.59L12 4.12h4c1.1 0 2 .9 2 2v8.59z"/></svg>
+                <span style="font-size: 0.9rem; font-weight: bold; color: #9ca3af;">Touch and hold to unpause camera.</span>
+            </div>
             <video id="cameraFeed" autoplay playsinline></video>
         </div>
 
@@ -497,6 +544,12 @@
             if (pushState) history.pushState({ view: viewId }, "", "#" + viewId);
         }
 
+        function checkDesktopRouting() {
+            const isDesktop = !/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+            const bypassed = sessionStorage.getItem('desktopBypass') === 'true';
+            return (isDesktop && !bypassed) ? 'viewDesktopBlock' : 'viewLogin';
+        }
+
         window.addEventListener('popstate', (e) => {
             if (currentStream) {
                 stopCamera();
@@ -507,18 +560,30 @@
                 document.getElementById(e.state.view).classList.add('active');
             } else {
                 views.forEach(v => v.classList.remove('active'));
-                document.getElementById('viewLogin').classList.add('active');
+                document.getElementById(checkDesktopRouting()).classList.add('active');
             }
         });
 
         window.onload = () => {
-            history.replaceState({ view: 'viewLogin' }, "", "#viewLogin");
-            const lastStore = localStorage.getItem('lastStore');
-            if (lastStore) {
-                document.getElementById('inputStore').value = lastStore;
-                document.getElementById('inputPin').focus();
+            const initialView = checkDesktopRouting();
+            history.replaceState({ view: initialView }, "", "#" + initialView);
+            
+            if (initialView === 'viewLogin') {
+                const lastStore = localStorage.getItem('lastStore');
+                if (lastStore) {
+                    document.getElementById('inputStore').value = lastStore;
+                    document.getElementById('inputPin').focus();
+                }
+            } else {
+                views.forEach(v => v.classList.remove('active'));
+                document.getElementById(initialView).classList.add('active');
             }
         };
+
+        document.getElementById('continueDesktopBtn').addEventListener('click', () => {
+            sessionStorage.setItem('desktopBypass', 'true');
+            navigateTo('viewLogin');
+        });
 
         window.showModal = function(id) {
             modals.forEach(m => m.classList.remove('active'));
@@ -871,6 +936,9 @@
         });
 
         // --- CAMERA LOGIC ---
+        let isCameraPaused = false;
+        let pressTimer = null;
+
         async function startCamera() {
             if (currentStream) return;
             try {
@@ -878,6 +946,8 @@
                     video: { facingMode: 'environment', width: { ideal: 4096 }, height: { ideal: 2160 }, advanced: [{ focusMode: "continuous" }] }
                 });
                 video.srcObject = currentStream;
+                isCameraPaused = false;
+                document.getElementById('cameraPauseOverlay').classList.remove('active');
             } catch (err) { statusEl.innerText = "Camera Error."; }
         }
         function stopCamera() {
@@ -887,11 +957,40 @@
             if (document.hidden) stopCamera();
             else if (document.getElementById('viewScanner').classList.contains('active')) startCamera();
         });
-        document.getElementById('videoContainer').addEventListener('click', async () => {
+
+        function toggleCameraPause() {
+            isCameraPaused = !isCameraPaused;
+            const overlay = document.getElementById('cameraPauseOverlay');
+            if (isCameraPaused) {
+                stopCamera();
+                overlay.classList.add('active');
+            } else {
+                startCamera();
+            }
+        }
+
+        const vc = document.getElementById('videoContainer');
+        const clearPressTimer = () => { if (pressTimer) clearTimeout(pressTimer); };
+        const startPressTimer = (e) => {
+            if (e.type === 'touchstart') { /* passive */ }
+            pressTimer = setTimeout(() => {
+                pressTimer = null;
+                toggleCameraPause();
+            }, 500);
+        };
+
+        vc.addEventListener('mousedown', startPressTimer);
+        vc.addEventListener('touchstart', startPressTimer, { passive: true });
+        vc.addEventListener('mouseup', clearPressTimer);
+        vc.addEventListener('mouseleave', clearPressTimer);
+        vc.addEventListener('touchend', clearPressTimer);
+
+        vc.addEventListener('click', async () => {
+            if (isCameraPaused) return;
             if (!currentStream) return;
             const track = currentStream.getVideoTracks()[0];
-            document.getElementById('videoContainer').classList.add('focus-flash');
-            setTimeout(() => document.getElementById('videoContainer').classList.remove('focus-flash'), 250);
+            vc.classList.add('focus-flash');
+            setTimeout(() => vc.classList.remove('focus-flash'), 250);
             if (track.getCapabilities && track.getCapabilities().focusMode) {
                 try { await track.applyConstraints({ advanced: [{ focusMode: "continuous" }] }); } catch (e) {}
             }
