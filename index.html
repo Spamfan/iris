@@ -203,7 +203,7 @@
         .desktop-text { font-size: 1.5rem; font-weight: bold; color: #111; max-width: 400px; line-height: 1.4; text-align: left; }
         #continueDesktopBtn {
             margin-top: auto; background: none; border: none; color: #6b7280; font-size: 0.9rem; 
-            cursor: pointer; padding: 10px 0; box-shadow: none; align-self: center; text-decoration: none;
+            cursor: pointer; padding: 10px 0; box-shadow: none; align-self: flex-start; text-decoration: none;
         }
         #continueDesktopBtn:hover { color: #374151; text-decoration: underline; }
         
@@ -237,7 +237,7 @@
             <button id="settingsBtn" title="GitHub Settings">
                 <svg class="icon" viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
             </button>
-            <div id="versionLabel">v0.0.5</div>
+            <div id="versionLabel">v0.0.6</div>
         </div>
         <button id="homeBtn" title="Home">
             <svg class="icon" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
@@ -397,10 +397,6 @@
         <div class="crop-container" id="cropContainer">
             <img id="cropImage" src="" alt="Crop Preview">
         </div>
-        <div class="zoom-controls">
-            <span>🔍</span>
-            <input type="range" id="cropZoomSlider" min="0.1" max="3" step="0.01" value="1">
-        </div>
         <button id="confirmCropBtn">CONFIRM CROP & SCAN</button>
     </div>
 
@@ -483,6 +479,7 @@
         const db = getDatabase(app);
 
         // --- STATE ---
+        let desktopBypass = false;
         let currentStore = "";
         let currentCarrier = "";
         let scannerMode = "guided"; 
@@ -555,8 +552,7 @@
 
         function checkDesktopRouting() {
             const isDesktop = !/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-            const bypassed = sessionStorage.getItem('desktopBypass') === 'true';
-            return (isDesktop && !bypassed) ? 'viewDesktopBlock' : 'viewLogin';
+            return (isDesktop && !desktopBypass) ? 'viewDesktopBlock' : 'viewLogin';
         }
 
         window.addEventListener('popstate', (e) => {
@@ -590,7 +586,7 @@
         };
 
         document.getElementById('continueDesktopBtn').addEventListener('click', () => {
-            sessionStorage.setItem('desktopBypass', 'true');
+            desktopBypass = true;
             navigateTo('viewLogin');
         });
 
@@ -1147,6 +1143,7 @@
                         // Selection Highlight Pulse
                         const newLength = scannerList.value.length;
                         if (newLength > oldLength) {
+                            scannerList.readOnly = true;
                             scannerList.focus();
                             scannerList.setSelectionRange(oldLength, newLength);
                             setTimeout(() => {
@@ -1154,6 +1151,7 @@
                                     scannerList.setSelectionRange(newLength, newLength);
                                     scannerList.blur();
                                 }
+                                scannerList.readOnly = false;
                             }, 1000);
                         }
                         
@@ -1206,8 +1204,7 @@
         // --- CROP ENGINE LOGIC ---
         let cropImg = document.getElementById('cropImage');
         let cropContainer = document.getElementById('cropContainer');
-        let cropZoomSlider = document.getElementById('cropZoomSlider');
-        let imgState = { x: 0, y: 0, scale: 1, baseW: 0, baseH: 0, isDragging: false, startX: 0, startY: 0 };
+        let imgState = { x: 0, y: 0, scale: 1, baseW: 0, baseH: 0, isDragging: false, startX: 0, startY: 0, startDistance: 0, startScale: 1, startCenterX: 0, startCenterY: 0 };
 
         document.getElementById('uploadImageBtn').addEventListener('click', () => {
             stopCamera(); // Pause camera while browsing
@@ -1255,7 +1252,6 @@
                         imgState.scale = 1;
                         imgState.x = (containerW - imgState.baseW) / 2;
                         imgState.y = (containerH - imgState.baseH) / 2;
-                        cropZoomSlider.value = 1;
                         
                         updateCropTransform();
                     }, 50);
@@ -1277,22 +1273,7 @@
             cropImg.style.transform = `translate(${imgState.x}px, ${imgState.y}px) scale(${imgState.scale})`;
         }
 
-        cropZoomSlider.addEventListener('input', (e) => {
-            const newScale = parseFloat(e.target.value);
-            // Zoom towards the center of the container
-            const cx = cropContainer.clientWidth / 2;
-            const cy = cropContainer.clientHeight / 2;
-            
-            const dx = cx - imgState.x;
-            const dy = cy - imgState.y;
-            
-            imgState.x = cx - (dx * (newScale / imgState.scale));
-            imgState.y = cy - (dy * (newScale / imgState.scale));
-            imgState.scale = newScale;
-            updateCropTransform();
-        });
-
-        // Touch & Mouse Panning
+        // Touch & Mouse Panning and Pinch-to-Zoom
         const startDrag = (clientX, clientY) => {
             imgState.isDragging = true;
             imgState.startX = clientX - imgState.x;
@@ -1310,12 +1291,48 @@
         window.addEventListener('mousemove', (e) => moveDrag(e.clientX, e.clientY));
         window.addEventListener('mouseup', endDrag);
 
-        cropImg.addEventListener('touchstart', (e) => startDrag(e.touches[0].clientX, e.touches[0].clientY));
+        cropImg.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 2) {
+                imgState.isDragging = false;
+                const t1 = e.touches[0], t2 = e.touches[1];
+                imgState.startDistance = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+                imgState.startScale = imgState.scale;
+                imgState.startCenterX = (t1.clientX + t2.clientX) / 2;
+                imgState.startCenterY = (t1.clientY + t2.clientY) / 2;
+                imgState.startX = imgState.startCenterX - imgState.x;
+                imgState.startY = imgState.startCenterY - imgState.y;
+            } else if (e.touches.length === 1) {
+                startDrag(e.touches[0].clientX, e.touches[0].clientY);
+            }
+        });
+
         window.addEventListener('touchmove', (e) => {
-            if (imgState.isDragging) e.preventDefault(); // Prevent scrolling while panning
-            moveDrag(e.touches[0].clientX, e.touches[0].clientY);
+            if (e.touches.length === 2) {
+                e.preventDefault();
+                const t1 = e.touches[0], t2 = e.touches[1];
+                const newDistance = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+                const currentCenterX = (t1.clientX + t2.clientX) / 2;
+                const currentCenterY = (t1.clientY + t2.clientY) / 2;
+                
+                const newScale = imgState.startScale * (newDistance / imgState.startDistance);
+                const scaleRatio = newScale / imgState.startScale;
+                
+                imgState.x = currentCenterX - (imgState.startX * scaleRatio);
+                imgState.y = currentCenterY - (imgState.startY * scaleRatio);
+                imgState.scale = newScale;
+                updateCropTransform();
+            } else if (e.touches.length === 1 && imgState.isDragging) {
+                e.preventDefault();
+                moveDrag(e.touches[0].clientX, e.touches[0].clientY);
+            }
         }, { passive: false });
-        window.addEventListener('touchend', endDrag);
+
+        window.addEventListener('touchend', (e) => {
+            if (e.touches.length < 2) {
+                if (e.touches.length === 1) startDrag(e.touches[0].clientX, e.touches[0].clientY);
+                else endDrag();
+            }
+        });
 
         // Confirm Crop & Send to OCR
         document.getElementById('confirmCropBtn').addEventListener('click', async () => {
