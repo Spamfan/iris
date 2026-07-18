@@ -241,7 +241,7 @@
                 <svg class="icon" viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
                 <span id="settingsWarningBadge">!</span>
             </button>
-            <div id="versionLabel">v0.1.0</div>
+            <div id="versionLabel">v0.1.1</div>
         </div>
         <button id="homeBtn" title="Home">
             <svg class="icon" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
@@ -384,16 +384,7 @@
             </div>
         </div>
         
-        <div id="devConsoleWrapper" style="display: none; flex-direction: column; width: 100%; max-width: 600px; margin-top: 10px; flex-shrink: 0;">
-            <div style="display: flex; justify-content: space-between; align-items: center; background: #e0e0e0; padding: 5px 10px; border-radius: 8px 8px 0 0; border: 1px solid #ccc; border-bottom: none;">
-                <span style="font-size: 0.8rem; font-weight: bold; color: #111;">Developer Console</span>
-                <div style="display: flex; gap: 5px;">
-                    <button id="downloadDebugBtn" style="padding: 5px 10px; font-size: 0.8rem; background: #3b82f6; color: white; border: none; border-radius: 4px;">Download Debug Report</button>
-                    <button id="copyIrisLogBtn" style="padding: 5px 10px; font-size: 0.8rem; background: #ccc; color: #111; border: none; border-radius: 4px;">Copy Log</button>
-                </div>
-            </div>
-            <pre id="devConsoleOutput" style="margin: 0; padding: 10px; background: #f0f0f0; color: #333; font-family: monospace; font-size: 0.75rem; height: 150px; overflow-y: auto; border: 1px solid #ccc; border-top: none; border-radius: 0 0 8px 8px; white-space: pre-wrap; word-wrap: break-word; text-align: left;"></pre>
-        </div>
+        <button id="downloadDebugBtn" style="display: none; width: 100%; max-width: 600px; padding: 15px; background-color: #3b82f6; color: white; border: none; border-radius: 8px; margin-top: 10px; font-weight: bold; font-size: 1.1rem; flex-shrink: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">Download Last Scan Debug Report</button>
     </div>
 
     <div id="viewCrop" class="view">
@@ -439,8 +430,8 @@
             <h3>Settings</h3>
             <div id="settingsTopWarn">❗ Inventory you report won't save properly until you've fixed these setting(s).</div>
             <div class="form-group" style="display: flex; align-items: center; gap: 10px; justify-content: center;">
-                <input type="checkbox" id="devModeToggle" style="width: 20px; height: 20px; margin: 0;">
-                <label style="margin: 0; font-size: 1rem; color: #111;">Show Developer Console</label>
+                <input type="checkbox" id="debugButtonToggle" style="width: 20px; height: 20px; margin: 0;">
+                <label style="margin: 0; font-size: 1rem; color: #111;">Show Debug Download Button</label>
             </div>
             <div class="form-group" style="display: flex; align-items: center; gap: 10px; justify-content: center; margin-top: 10px;">
                 <input type="checkbox" id="debugImagesToggle" style="width: 20px; height: 20px; margin: 0;">
@@ -507,59 +498,16 @@
         let undoStack = []; let redoStack = [];
         let storeInventoryData = { TMO: null, VZW: null, ATT: null }; // Live synced from Firebase
         let fbListenerUnsubscribe = null;
-
-        const DebugDB = {
-            db: null,
-            init: function() {
-                const req = indexedDB.open('IrisDebugDB', 1);
-                req.onupgradeneeded = (e) => {
-                    const db = e.target.result;
-                    if (!db.objectStoreNames.contains('scans')) db.createObjectStore('scans', { keyPath: 'id' });
-                };
-                req.onsuccess = (e) => { this.db = e.target.result; };
-            },
-            save: function(payload) {
-                if (!this.db) return;
-                const tx = this.db.transaction('scans', 'readwrite');
-                tx.objectStore('scans').put(payload);
-                tx.oncomplete = () => this.prune();
-            },
-            prune: function() {
-                if (!this.db) return;
-                const store = this.db.transaction('scans', 'readwrite').objectStore('scans');
-                const req = store.getAllKeys();
-                req.onsuccess = () => {
-                    let keys = req.result;
-                    if (keys.length > 20) {
-                        keys.sort((a,b) => a - b);
-                        keys.slice(0, keys.length - 20).forEach(k => store.delete(k));
-                    }
-                };
-            },
-            getAll: function(callback) {
-                if (!this.db) return callback([]);
-                const req = this.db.transaction('scans', 'readonly').objectStore('scans').getAll();
-                req.onsuccess = () => {
-                    let res = req.result;
-                    res.sort((a,b) => a.id - b.id);
-                    callback(res);
-                };
-            }
-        };
-        DebugDB.init();
+        let lastDebugPayload = null;
 
         // --- DOM ---
         const views = document.querySelectorAll('.view');
-        const devConsoleOutput = document.getElementById('devConsoleOutput');
         
         // --- LOGGER ---
         let currentSessionLogs = [];
         function irisLog(title, data) {
-            if (!devConsoleOutput) return;
             const ts = new Date().toLocaleTimeString();
             const logStr = `\n========== ${title} [${ts}] ==========\n${data}\n`;
-            devConsoleOutput.textContent += logStr;
-            devConsoleOutput.scrollTop = devConsoleOutput.scrollHeight;
             currentSessionLogs.push(logStr);
         }
         const modalOverlay = document.getElementById('modalOverlay');
@@ -633,6 +581,9 @@
 
         window.onload = () => {
             updateGlobalSettingsBadge();
+            const config = getGhConfig();
+            const debugBtn = document.getElementById('downloadDebugBtn');
+            if (debugBtn) debugBtn.style.display = config.showDebugBtn ? 'block' : 'none';
             const initialView = checkDesktopRouting();
             history.replaceState({ view: initialView }, "", "#" + initialView);
             
@@ -667,73 +618,54 @@
         document.getElementById('termsBtn').addEventListener('click', () => window.showModal('modalTerms'));
 
         // --- GITHUB PUBLISHER & SETTINGS ---
-        document.getElementById('devModeToggle').addEventListener('change', (e) => {
-            document.getElementById('devConsoleWrapper').style.display = e.target.checked ? 'flex' : 'none';
-        });
-
-        document.getElementById('copyIrisLogBtn').addEventListener('click', () => {
-            const text = devConsoleOutput.textContent;
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(text).then(() => alert('Log copied!')).catch(() => legacyCopyIris(text));
-            } else {
-                legacyCopyIris(text);
-            }
-        });
 
         document.getElementById('downloadDebugBtn').addEventListener('click', () => {
-            DebugDB.getAll((records) => {
-                if (records.length === 0) return alert('No debug logs available.');
-                let html = `<!DOCTYPE html><html><head><title>IRIS Debug Report</title><style>body{font-family:sans-serif; background:#f0f2f5; padding:20px; margin:0;} .card{background:#fff; border-radius:8px; padding:15px; margin-bottom:20px; box-shadow:0 1px 3px rgba(0,0,0,0.1);} .ui-sim{background:#1f2937; color:#fff; padding:15px; border-radius:6px; margin-bottom:15px; font-family:monospace;} .img-container{max-width:400px; border:2px solid #3b82f6; border-radius:8px; overflow:hidden; margin-bottom:15px;} img{width:100%; display:block;} pre{background:#e5e7eb; padding:10px; border-radius:6px; overflow-x:auto; font-size:12px; white-space:pre-wrap; margin-top:5px; color:#1f2937;} h4{margin:0 0 5px 0;} </style></head><body><h2>IRIS Mobile - Debug Report</h2>`;
-                
-                records.forEach(r => {
-                    html += `<div class="card">
-                        <h3>[${r.source.toUpperCase()}] - ${r.dateStr}</h3>`;
-                    
-                    if (r.uiState) {
-                        html += `<div class="ui-sim">
-                            <div style="display:flex; justify-content:space-between; margin-bottom:10px; color:#9ca3af; font-size:0.9rem;">
-                                <span>${r.uiState.store} ${r.uiState.carrier}</span>
-                                <span style="color:${r.uiState.status.includes('Added') ? '#22c55e' : '#ff9800'}; font-weight:bold;">${r.uiState.status}</span>
-                            </div>
-                            <pre style="background:#374151; color:#fff; border:1px solid #4b5563; min-height:80px;">${r.uiState.scannerListText || '(Empty)'}</pre>
-                        </div>`;
-                    }
-                    
-                    html += `<div class="img-container"><img src="${r.image}"></div>
-                        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px;">
-                            <div style="flex:1; min-width:250px;"><h4>Raw OCR</h4><pre>${r.rawText || 'None'}</pre></div>
-                            <div style="flex:1; min-width:250px;"><h4>Final Text</h4><pre>${r.finalText || 'None'}</pre></div>
-                        </div>
-                        <h4>Internal Logs</h4><pre>${r.logs || 'None'}</pre>
-                    </div>`;
-                });
-                
-                html += `</body></html>`;
-                
-                const blob = new Blob([html], { type: 'text/html' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `iris_debug_report_${Date.now()}.html`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-            });
+            if (!lastDebugPayload) return alert('No recent scan available to debug in this session.');
+            
+            let html = `<!DOCTYPE html><html><head><title>IRIS Debug Report</title><style>body{font-family:sans-serif; background:#f0f2f5; padding:20px; margin:0;} .card{background:#fff; border-radius:8px; padding:15px; margin-bottom:20px; box-shadow:0 1px 3px rgba(0,0,0,0.1);} .ui-sim{background:#1f2937; color:#fff; padding:15px; border-radius:6px; margin-bottom:15px; font-family:monospace;} .img-container{max-width:400px; border:2px solid #3b82f6; border-radius:8px; overflow:hidden; margin-bottom:15px;} img{width:100%; display:block;} pre{background:#e5e7eb; padding:10px; border-radius:6px; overflow-x:auto; font-size:12px; white-space:pre-wrap; margin-top:5px; color:#1f2937;} h4{margin:0 0 5px 0;} </style></head><body><h2>IRIS Mobile - Debug Report (Last Scan)</h2>`;
+            
+            const r = lastDebugPayload;
+            html += `<div class="card">
+                <h3>[${r.source.toUpperCase()}] - ${r.dateStr}</h3>`;
+            
+            if (r.uiState) {
+                html += `<div class="ui-sim">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:10px; color:#9ca3af; font-size:0.9rem;">
+                        <span>${r.uiState.store} ${r.uiState.carrier}</span>
+                        <span style="color:${r.uiState.status.includes('Added') ? '#22c55e' : '#ff9800'}; font-weight:bold;">${r.uiState.status}</span>
+                    </div>
+                    <pre style="background:#374151; color:#fff; border:1px solid #4b5563; min-height:80px;">${r.uiState.scannerListText || '(Empty)'}</pre>
+                </div>`;
+            }
+            
+            html += `<div class="img-container"><img src="${r.image}"></div>
+                <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px;">
+                    <div style="flex:1; min-width:250px;"><h4>Raw OCR</h4><pre>${r.rawText || 'None'}</pre></div>
+                    <div style="flex:1; min-width:250px;"><h4>Final Text</h4><pre>${r.finalText || 'None'}</pre></div>
+                </div>
+                <h4>Internal Logs</h4><pre>${r.logs || 'None'}</pre>
+            </div>`;
+            
+            html += `</body></html>`;
+            
+            const blob = new Blob([html], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `iris_debug_report_${Date.now()}.html`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         });
-
-        function legacyCopyIris(text) {
-            const ta = document.createElement('textarea'); ta.value = text;
-            ta.style.position = 'fixed'; ta.style.opacity = 0; document.body.appendChild(ta);
-            ta.focus(); ta.select(); try { document.execCommand('copy'); alert('Log copied!'); } catch (err) { alert('Copy failed.'); } document.body.removeChild(ta);
-        }
 
         function getGhConfig() {
             const raw = localStorage.getItem('gh_config');
-            if (!raw) return { user: 'spamfan', repo: 'optimizer', token: '', debugImages: true, debugSimUI: true };
+            if (!raw) return { user: 'spamfan', repo: 'optimizer', token: '', debugImages: true, debugSimUI: true, showDebugBtn: false };
             const parsed = JSON.parse(raw);
             if (parsed.debugImages === undefined) parsed.debugImages = true;
             if (parsed.debugSimUI === undefined) parsed.debugSimUI = true;
+            if (parsed.showDebugBtn === undefined) parsed.showDebugBtn = false;
             return parsed;
         }
 
@@ -798,6 +730,7 @@
             document.getElementById('ghToken').value = config.token || '';
             document.getElementById('debugImagesToggle').checked = config.debugImages;
             document.getElementById('debugSimUIToggle').checked = config.debugSimUI;
+            document.getElementById('debugButtonToggle').checked = config.showDebugBtn;
             updateSettingsModalUI();
             window.showModal('modalGhSettings');
         });
@@ -808,7 +741,12 @@
             const token = document.getElementById('ghToken').value.trim();
             const debugImages = document.getElementById('debugImagesToggle').checked;
             const debugSimUI = document.getElementById('debugSimUIToggle').checked;
-            localStorage.setItem('gh_config', JSON.stringify({ user, repo, token, debugImages, debugSimUI }));
+            const showDebugBtn = document.getElementById('debugButtonToggle').checked;
+            localStorage.setItem('gh_config', JSON.stringify({ user, repo, token, debugImages, debugSimUI, showDebugBtn }));
+            
+            const debugBtn = document.getElementById('downloadDebugBtn');
+            if (debugBtn) debugBtn.style.display = showDebugBtn ? 'block' : 'none';
+            
             updateGlobalSettingsBadge();
             window.hideModal();
         });
@@ -1366,7 +1304,7 @@
                         status: statusEl.innerText
                     };
                 }
-                DebugDB.save(payload);
+                lastDebugPayload = payload;
             }
             currentSessionLogs = [];
             // ---------------------
