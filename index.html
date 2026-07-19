@@ -217,8 +217,12 @@
         }
         #cameraPauseOverlay.active { display: flex; }
 
+        #gyroLevelLine { position: absolute; top: 50%; left: 10%; right: 10%; height: 2px; background: white; transform-origin: center; z-index: 5; transition: background-color 0.2s, transform 0.1s linear; box-shadow: 0 0 4px rgba(0,0,0,0.5); display: none; }
+        #gridOverlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; z-index: 4; }
+        .grid-line { position: absolute; left: 0; right: 0; height: 1px; opacity: 0.75; }
+        
         /* --- VIEW 5: CROP --- */
-        #uploadImageBtn { background-color: #3b82f6; color: white; padding: 0 15px; font-size: 1rem; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border-radius: 8px; }
+        #uploadImageBtn, #gridToggleBtn { background-color: #3b82f6; color: white; padding: 0 10px; font-size: 1rem; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border-radius: 8px; }
         .crop-header { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 600px; margin-bottom: 20px; }
         #cancelCropBtn { background-color: #e5e7eb; color: #374151; padding: 5px 15px; }
         .crop-container {
@@ -241,7 +245,7 @@
                 <svg class="icon" viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
                 <span id="settingsWarningBadge">!</span>
             </button>
-            <div id="versionLabel">v0.1.1</div>
+            <div id="versionLabel">v0.1.2</div>
         </div>
         <button id="homeBtn" title="Home">
             <svg class="icon" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
@@ -343,6 +347,7 @@
                 </div>
                 <span id="guidedHeaderWarn" class="overwrite-warn"></span>
             </div>
+            <button id="gridToggleBtn" title="Toggle Horizon Lines"><svg class="icon" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/></svg></button>
             <button id="uploadImageBtn" title="Upload Image"><svg class="icon" viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg></button>
             <input type="file" id="imageUploadInput" style="display: none;">
             <div id="status">Ready.</div>
@@ -356,6 +361,8 @@
                 </svg>
                 <span style="font-size: 0.9rem; font-weight: bold; color: #9ca3af;">Tap here to unpause camera.</span>
             </div>
+            <div id="gridOverlay"></div>
+            <div id="gyroLevelLine"></div>
             <video id="cameraFeed" autoplay playsinline></video>
         </div>
 
@@ -638,7 +645,20 @@
                 </div>`;
             }
             
-            html += `<div class="img-container"><img src="${r.image}"></div>
+            let gridCss = '';
+            if (r.uiState && r.uiState.gridState > 0) {
+                const y = 'rgba(234, 179, 8, 0.75)';
+                const b = 'rgba(59, 130, 246, 0.75)';
+                const w = 'rgba(255, 255, 255, 0.75)';
+                if (r.uiState.gridState === 1) gridCss = `background: repeating-linear-gradient(to bottom, transparent, transparent 24.5%, ${y} 24.5%, ${y} 25%);`;
+                else if (r.uiState.gridState === 2) gridCss = `background: repeating-linear-gradient(to bottom, transparent, transparent 12%, ${b} 12.2%, transparent 12.5%, transparent 24.5%, ${y} 24.5%, ${y} 25%);`;
+                else gridCss = `background: repeating-linear-gradient(to bottom, transparent, transparent 6%, ${w} 6.1%, transparent 6.2%, transparent 12%, ${b} 12.2%, transparent 12.5%, transparent 24.5%, ${y} 24.5%, ${y} 25%);`;
+            }
+            
+            html += `<div class="img-container" style="position:relative;">
+                <div style="position:absolute; top:0; left:0; right:0; bottom:0; pointer-events:none; ${gridCss}"></div>
+                <img src="${r.image}">
+            </div>
                 <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px;">
                     <div style="flex:1; min-width:250px;"><h4>Raw OCR</h4><pre>${r.rawText || 'None'}</pre></div>
                     <div style="flex:1; min-width:250px;"><h4>Final Text</h4><pre>${r.finalText || 'None'}</pre></div>
@@ -981,7 +1001,7 @@
             updateGuidedRoutingButtons();
             updateScannerRatio();
 
-            await startCamera();
+            isCameraPaused = true; stopCamera(); document.getElementById('cameraPauseOverlay').classList.add('active');
         }
 
         function updateGuidedRoutingButtons() {
@@ -1036,7 +1056,7 @@
             undoStack = []; redoStack = [];
             statusEl.innerText = "Ready.";
             updateScannerRatio();
-            await startCamera();
+            isCameraPaused = true; stopCamera(); document.getElementById('cameraPauseOverlay').classList.add('active');
         }
 
         function exitScannerLogic(focusEdit = false) {
@@ -1053,24 +1073,61 @@
 
         // --- CAMERA LOGIC ---
         let isCameraPaused = false;
+        let currentLens = 'main';
+        let activeDeviceId = null;
+        let gyroInitialized = false;
+        let gridState = 0;
 
-        async function startCamera() {
+        async function startCamera(deviceId = null) {
             if (currentStream) return;
             try {
-                currentStream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: 'environment', width: { ideal: 4096 }, height: { ideal: 2160 }, advanced: [{ focusMode: "continuous" }] }
-                });
+                const constraints = {
+                    video: { 
+                        facingMode: deviceId ? undefined : 'environment', 
+                        deviceId: deviceId ? { exact: deviceId } : undefined,
+                        width: { ideal: 4096 }, 
+                        height: { ideal: 2160 }, 
+                        advanced: [{ focusMode: "continuous" }] 
+                    }
+                };
+                currentStream = await navigator.mediaDevices.getUserMedia(constraints);
                 video.srcObject = currentStream;
                 isCameraPaused = false;
                 document.getElementById('cameraPauseOverlay').classList.remove('active');
             } catch (err) { statusEl.innerText = "Camera Error."; }
         }
+
+        async function switchLens(targetLens) {
+            if (currentLens === targetLens) return;
+            try {
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const videoDevices = devices.filter(d => d.kind === 'videoinput');
+                let targetDevice = null;
+                
+                if (targetLens === 'ultrawide') {
+                    targetDevice = videoDevices.find(d => d.label.toLowerCase().includes('ultrawide') || d.label.toLowerCase().includes('ultra wide') || d.label.toLowerCase().includes('0.5x'));
+                } else {
+                    targetDevice = videoDevices.find(d => d.facingMode === 'environment' && !d.label.toLowerCase().includes('ultrawide') && !d.label.toLowerCase().includes('0.5x') && !d.label.toLowerCase().includes('telephoto')) || videoDevices.find(d => d.facingMode === 'environment');
+                }
+                
+                if (targetDevice) {
+                    currentLens = targetLens;
+                    activeDeviceId = targetDevice.deviceId;
+                    stopCamera();
+                    await startCamera(activeDeviceId);
+                    statusEl.innerText = targetLens === 'ultrawide' ? "0.5x Lens" : "1x Lens";
+                    setTimeout(() => { if(statusEl.innerText.includes("Lens")) statusEl.innerText = "Ready."; }, 1500);
+                }
+            } catch(e) { console.warn("Lens switch failed", e); }
+        }
+
         function stopCamera() {
             if (currentStream) { currentStream.getTracks().forEach(t => t.stop()); currentStream = null; video.srcObject = null; }
         }
+        
         document.addEventListener('visibilitychange', () => {
             if (document.hidden) stopCamera();
-            else if (document.getElementById('viewScanner').classList.contains('active')) startCamera();
+            else if (document.getElementById('viewScanner').classList.contains('active') && !isCameraPaused) startCamera(activeDeviceId);
         });
 
         function toggleCameraPause() {
@@ -1080,14 +1137,85 @@
                 stopCamera();
                 overlay.classList.add('active');
             } else {
-                startCamera();
+                startCamera(activeDeviceId);
+            }
+        }
+
+        function handleOrientation(e) {
+            if (!e.gamma && e.gamma !== 0) return;
+            const line = document.getElementById('gyroLevelLine');
+            let tilt = e.gamma; 
+            line.style.transform = `translateY(-50%) rotate(${tilt}deg)`;
+            if (Math.abs(tilt) <= 2) {
+                line.style.backgroundColor = '#22c55e';
+            } else {
+                line.style.backgroundColor = 'white';
             }
         }
 
         const vc = document.getElementById('videoContainer');
         
+        let pinchStartDist = 0;
+        let isPinching = false;
+
+        vc.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 2) {
+                isPinching = true;
+                pinchStartDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+            }
+        });
+        
+        vc.addEventListener('touchmove', (e) => {
+            if (!isPinching || e.touches.length !== 2) return;
+            const currentDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+            const delta = currentDist - pinchStartDist;
+            if (delta < -40) { isPinching = false; switchLens('ultrawide'); } 
+            else if (delta > 40) { isPinching = false; switchLens('main'); } 
+        });
+        
+        vc.addEventListener('touchend', (e) => { if (e.touches.length < 2) isPinching = false; });
+
         vc.addEventListener('click', () => {
             toggleCameraPause();
+            if (!isCameraPaused && !gyroInitialized) {
+                if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                    DeviceOrientationEvent.requestPermission().then(response => {
+                        if (response === 'granted') {
+                            window.addEventListener('deviceorientation', handleOrientation);
+                            document.getElementById('gyroLevelLine').style.display = 'block';
+                            gyroInitialized = true;
+                        }
+                    }).catch(console.error);
+                } else {
+                    window.addEventListener('deviceorientation', handleOrientation);
+                    document.getElementById('gyroLevelLine').style.display = 'block';
+                    gyroInitialized = true;
+                }
+            }
+        });
+
+        document.getElementById('gridToggleBtn').addEventListener('click', () => {
+            gridState = (gridState + 1) % 4;
+            const overlay = document.getElementById('gridOverlay');
+            overlay.innerHTML = '';
+            
+            if (gridState > 0) {
+                const addLines = (count, color, thickness) => {
+                    for (let i = 1; i <= count; i++) {
+                        const pct = (i / (count + 1)) * 100;
+                        const line = document.createElement('div');
+                        line.className = 'grid-line';
+                        line.style.top = `${pct}%`;
+                        line.style.backgroundColor = color;
+                        line.style.height = thickness;
+                        overlay.appendChild(line);
+                    }
+                };
+                
+                addLines(3, '#eab308', '2px'); 
+                if (gridState >= 2) addLines(4, '#3b82f6', '1px'); 
+                if (gridState >= 3) addLines(8, '#ffffff', '1px'); 
+            }
         });
 
         function saveState() {
@@ -1276,8 +1404,10 @@
                         updateScannerRatio(); // Dynamically update viewfinder ratio for next scan
                     } else { statusEl.innerText = "Filtered to empty."; statusEl.style.color = "#ff9800"; }
                 } else { 
-                    irisLog('[ERROR]', 'API Error or No text found in response.');
-                    statusEl.innerText = "API Error / No text."; statusEl.style.color = "#ef4444"; 
+                    let errorMsg = json.ErrorMessage ? (Array.isArray(json.ErrorMessage) ? json.ErrorMessage[0] : json.ErrorMessage) : 'API Error or No text found in response.';
+                    irisLog('[ERROR]', errorMsg);
+                    statusEl.innerText = errorMsg.length > 20 ? errorMsg.substring(0, 20) + "..." : errorMsg; 
+                    statusEl.style.color = "#ef4444"; 
                 }
             } catch (err) { 
                 irisLog('[ERROR]', `Network/Crash Error: ${err.message}`);
@@ -1301,13 +1431,20 @@
                         store: currentStore,
                         carrier: currentCarrier,
                         scannerListText: scannerList.value,
-                        status: statusEl.innerText
+                        status: statusEl.innerText,
+                        gridState: typeof gridState !== 'undefined' ? gridState : 0
                     };
                 }
                 lastDebugPayload = payload;
             }
             currentSessionLogs = [];
             // ---------------------
+            
+            if (!isCameraPaused && document.getElementById('viewScanner').classList.contains('active')) {
+                isCameraPaused = true;
+                stopCamera();
+                document.getElementById('cameraPauseOverlay').classList.add('active');
+            }
 
             setTimeout(() => { if (statusEl.innerText === "Added!" || statusEl.innerText.includes("empty")) { statusEl.innerText = "Ready."; statusEl.style.color = "#22c55e"; } }, 2000);
         }
