@@ -104,19 +104,6 @@
         #cardVZW { background-color: #ed1c24; }
         #cardATT { background-color: #00a8e0; }
 
-        /* --- VIEW 3: EDIT --- */
-        .header-row { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 600px; margin-bottom: 10px; }
-        #editBackBtn { background-color: #e5e7eb; color: #374151; font-size: 1rem; padding: 8px 15px; }
-        #editTitle { font-size: 1.1rem; color: #1f2937; font-weight: bold; flex-grow: 1; text-align: right; }
-        #editArea {
-            width: 100%; max-width: 600px; flex-grow: 1; background: #ffffff; color: #1f2937; border: 1px solid #d1d5db;
-            border-radius: 8px; padding: 15px; font-size: 1rem; resize: none; box-sizing: border-box; margin-bottom: 10px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-        .edit-controls { display: flex; gap: 10px; width: 100%; max-width: 600px; }
-        #startScannerBtn { background-color: #22c55e; color: white; flex: 1; font-size: 1.1rem; }
-        #saveEditBtn { background-color: #3b82f6; color: white; flex: 1; font-size: 1.1rem; }
-
         /* --- VIEW 4: SCANNER --- */
         .scanner-header { display: flex; justify-content: space-between; align-items: stretch; gap: 10px; width: 100%; max-width: 600px; margin-bottom: 5px; }
         #backFromScannerBtn { background-color: #e5e7eb; color: #374151; padding: 5px 15px; display: none; }
@@ -142,25 +129,26 @@
         video { width: 100%; height: 100%; display: block; object-fit: cover; }
 
         .scanner-bottom { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 600px; flex-grow: 1; min-height: 0; }
-        #scannerList {
-            width: 100%; height: 100%; background: #ffffff; color: #1f2937; border: 1px solid #d1d5db; border-radius: 8px; padding: 10px;
-            font-size: 0.65rem; resize: none; box-sizing: border-box; cursor: pointer; transition: background-color 1s ease-out;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-        .flash-green { background-color: #c8e6c9 !important; transition: none !important; }
+        .scanner-actions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .action-col { display: flex; flex-direction: column; gap: 10px; }
+        .action-col-row { display: flex; gap: 10px; flex-grow: 1; }
         
-        .scanner-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .action-col-left, .action-col-right { display: flex; flex-direction: column; gap: 10px; }
+        .btn-stacked { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; flex: 1; font-size: 0.85rem; padding: 10px; background-color: #3b82f6; color: white; }
+        .btn-stacked svg { width: 32px; height: 32px; }
         
         .undo-row { display: flex; gap: 5px; }
         .undo-row button { flex: 1; background-color: #e5e7eb; color: #374151; padding: 8px; }
-        #scanToListBtn { background-color: #22c55e; color: white; flex-grow: 1; font-size: 2rem; }
+        #scanToListBtn { background-color: #22c55e; color: white; flex-grow: 1; font-size: 2rem; font-weight: 900; }
         
-        .classic-actions { display: none; }
-        .guided-actions { display: flex; flex-direction: column; gap: 10px; flex-grow: 1; }
-        .guided-actions button { flex-grow: 1; }
-        #doneScannerBtn { background-color: #3b82f6; color: white; padding: 15px; width: 100%; }
-        #saveNextRouteBtn { background-color: #3b82f6; color: white; padding: 15px; font-size: 1.1rem; }
+        .cloud-debug-row { display: flex; gap: 10px; width: 100%; }
+        .cloud-debug-row button { flex: 1; background-color: #3b82f6; color: white; padding: 12px; font-size: 1rem; display: flex; align-items: center; justify-content: center; }
+        
+        #scannerList {
+            width: 100%; flex-grow: 1; background: #ffffff; color: #1f2937; border: 1px solid #d1d5db; border-radius: 8px; padding: 10px;
+            font-size: 0.65rem; resize: none; box-sizing: border-box; cursor: pointer; transition: background-color 1s ease-out;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1); min-height: 80px;
+        }
+        .flash-green { background-color: #c8e6c9 !important; transition: none !important; }
 
         /* --- MODALS --- */
         .modal-overlay {
@@ -217,7 +205,7 @@
         }
         #cameraPauseOverlay.active { display: flex; }
 
-        #gyroLevelLine { position: absolute; top: 50%; left: 10%; right: 10%; height: 2px; background: white; transform-origin: center; z-index: 5; transition: background-color 0.2s, transform 0.1s linear; box-shadow: 0 0 4px rgba(0,0,0,0.5); display: none; }
+
         #gridOverlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; z-index: 4; }
         .grid-line { position: absolute; left: 0; right: 0; height: 1px; opacity: 0.75; }
         
@@ -245,7 +233,7 @@
                 <svg class="icon" viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
                 <span id="settingsWarningBadge">!</span>
             </button>
-            <div id="versionLabel">v0.1.2</div>
+            <div id="versionLabel">v0.1.3</div>
         </div>
         <button id="homeBtn" title="Home">
             <svg class="icon" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
@@ -324,19 +312,6 @@
         </div>
     </div>
 
-    <div id="viewEdit" class="view">
-        <div class="header-row">
-            <button id="editBackBtn">❮ BACK</button>
-            <div id="editTitle">ATT (1698) - TAP TO EDIT</div>
-        </div>
-        <textarea id="editArea" maxlength="15000" placeholder="Type or scan inventory here..."></textarea>
-        <div class="edit-controls">
-            <button id="startScannerBtn">ADD FROM SCANNER</button>
-            <button id="saveEditBtn">SAVE AS CURRENT</button>
-        </div>
-        <button id="publishEditBtn" style="width: 100%; max-width: 600px; margin-top: 10px; padding: 15px; font-size: 1.1rem;">☁️ PUBLISH TO CLOUD</button>
-    </div>
-
     <div id="viewScanner" class="view">
         <div class="scanner-header">
             <button id="backFromScannerBtn">❮ BACK</button>
@@ -362,26 +337,25 @@
                 <span style="font-size: 0.9rem; font-weight: bold; color: #9ca3af;">Tap here to unpause camera.</span>
             </div>
             <div id="gridOverlay"></div>
-            <div id="gyroLevelLine"></div>
             <video id="cameraFeed" autoplay playsinline></video>
         </div>
 
         <div class="scanner-bottom">
-            <textarea id="scannerList" maxlength="15000" placeholder="List memory..."></textarea>
-            
-            <div class="scanner-actions">
-                <div class="action-col-left">
-                    <div class="classic-actions" id="classicActions">
-                        <button id="doneScannerBtn">DONE WITH SCANNER</button>
-                    </div>
-                    
-                    <div class="guided-actions" id="guidedActions">
-                        <button id="saveNextRouteBtn">SAVE & GO TO VZW</button>
-                        <button id="publishScannerBtn" style="padding: 15px; font-size: 1.1rem;">☁️ PUBLISH TO CLOUD</button>
-                    </div>
+            <div class="scanner-actions-grid">
+                <div class="action-col-row">
+                    <button id="saveCurrentBtn" class="btn-stacked">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg>
+                        <span>SAVE</span>
+                    </button>
+                    <button id="saveNextRouteBtn" class="btn-stacked">
+                        <div style="display:flex; align-items:center;">
+                            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg>
+                            <svg viewBox="0 0 24 24" fill="currentColor" style="width:24px; height:24px; margin-left:-5px;"><path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z"/></svg>
+                        </div>
+                        <span id="saveNextRouteText">GO TO VZW</span>
+                    </button>
                 </div>
-
-                <div class="action-col-right">
+                <div class="action-col">
                     <div class="undo-row">
                         <button id="undoBtn" title="Undo"><svg class="icon" viewBox="0 0 24 24"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C20.48 10.3 16.94 8 12.5 8z"/></svg></button>
                         <button id="redoBtn" title="Redo"><svg class="icon" viewBox="0 0 24 24" style="transform: scaleX(-1);"><path d="M11.5 8C15.94 8 19.52 10.3 20.9 14.12l-2.37.78C17.45 11.71 14.46 9.4 10.92 9.4c-1.96 0-3.73.72-5.12 1.88L9.42 14.9H.42v-9l3.6 3.6C5.87 8.99 8.27 8 10.92 8z"/></svg></button>
@@ -389,9 +363,16 @@
                     <button id="scanToListBtn">SCAN</button>
                 </div>
             </div>
+            
+            <div class="cloud-debug-row">
+                <button id="publishScannerBtn">↑ ☁️ Publish</button>
+                <button id="downloadDebugBtn" style="display: none;">
+                    <svg class="icon-sm" viewBox="0 0 24 24" style="margin-right:5px;"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg> Debug report
+                </button>
+            </div>
+            
+            <textarea id="scannerList" maxlength="15000" placeholder="List memory..."></textarea>
         </div>
-        
-        <button id="downloadDebugBtn" style="display: none; width: 100%; max-width: 600px; padding: 15px; background-color: #3b82f6; color: white; border: none; border-radius: 8px; margin-top: 10px; font-weight: bold; font-size: 1.1rem; flex-shrink: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">Download Last Scan Debug Report</button>
     </div>
 
     <div id="viewCrop" class="view">
@@ -499,9 +480,7 @@
         let desktopBypass = false;
         let currentStore = "";
         let currentCarrier = "";
-        let scannerMode = "guided"; 
         let currentStream = null;
-        let originalEditText = "";
         let undoStack = []; let redoStack = [];
         let storeInventoryData = { TMO: null, VZW: null, ATT: null }; // Live synced from Firebase
         let fbListenerUnsubscribe = null;
@@ -575,7 +554,6 @@
         window.addEventListener('popstate', (e) => {
             if (currentStream) {
                 stopCamera();
-                if (scannerMode === 'classic') editArea.value = scannerList.value;
             }
             if (e.state && e.state.view) {
                 views.forEach(v => v.classList.remove('active'));
@@ -854,12 +832,6 @@
             }, 3000);
         }
 
-        document.getElementById('publishEditBtn').addEventListener('click', async function() {
-            saveCarrierData(currentStore, currentCarrier, editArea.value);
-            originalEditText = editArea.value;
-            await publishToGitHub(this);
-        });
-
         document.getElementById('publishScannerBtn').addEventListener('click', async function() {
             saveCarrierData(currentStore, currentCarrier, scannerList.value);
             await publishToGitHub(this);
@@ -926,8 +898,8 @@
         document.querySelectorAll('.carrier-card').forEach(card => {
             card.addEventListener('click', (e) => {
                 currentCarrier = e.currentTarget.dataset.carrier;
-                initEditView();
-                navigateTo('viewEdit');
+                initGuidedScanner();
+                navigateTo('viewScanner');
             });
         });
 
@@ -936,40 +908,8 @@
             for (let c of CARRIER_ORDER) {
                 if (!storeInventoryData[c] || !storeInventoryData[c].text.trim()) { target = c; break; }
             }
-            currentCarrier = target; scannerMode = "guided";
+            currentCarrier = target;
             initGuidedScanner();
-            navigateTo('viewScanner');
-        });
-
-        // --- VIEW 3: EDIT (Classic) ---
-        function initEditView() {
-            document.getElementById('editTitle').innerText = `${currentCarrier} (${currentStore}) - TAP TO EDIT`;
-            const data = storeInventoryData[currentCarrier];
-            const txt = data ? data.text : "";
-            editArea.value = txt;
-            originalEditText = txt;
-        }
-
-        document.getElementById('editBackBtn').addEventListener('click', () => {
-            if (editArea.value !== originalEditText) window.showModal('modalBackWarn');
-            else history.back();
-        });
-        document.getElementById('confirmBackWarnBtn').addEventListener('click', () => {
-            window.hideModal(); history.back();
-        });
-
-        document.getElementById('saveEditBtn').addEventListener('click', () => {
-            saveCarrierData(currentStore, currentCarrier, editArea.value);
-            originalEditText = editArea.value;
-            const btn = document.getElementById('saveEditBtn');
-            const origText = btn.innerText;
-            btn.innerText = "✔️ SAVED!"; btn.style.backgroundColor = "#22c55e";
-            setTimeout(() => { btn.innerText = origText; btn.style.backgroundColor = ""; }, 2000);
-        });
-
-        document.getElementById('startScannerBtn').addEventListener('click', () => {
-            scannerMode = "classic";
-            initClassicScanner();
             navigateTo('viewScanner');
         });
 
@@ -982,9 +922,6 @@
 
         async function initGuidedScanner() {
             document.getElementById('backFromScannerBtn').style.display = 'none';
-            document.getElementById('guidedHeader').style.display = 'flex';
-            document.getElementById('classicActions').style.display = 'none';
-            document.getElementById('guidedActions').style.display = 'flex';
             
             const data = storeInventoryData[currentCarrier];
             
@@ -1018,11 +955,12 @@
             }
             
             const routeBtn = document.getElementById('saveNextRouteBtn');
+            const routeText = document.getElementById('saveNextRouteText');
             if (nextCarrier) {
-                routeBtn.innerText = `SAVE & GO TO ${nextCarrier}`;
+                routeText.innerText = `GO TO ${nextCarrier}`;
                 routeBtn.onclick = () => guidedSaveAndRoute(nextCarrier);
             } else {
-                routeBtn.innerText = `SAVE & FINISH`;
+                routeText.innerText = `FINISH`;
                 routeBtn.onclick = () => guidedSaveAndRoute('FINISH');
             }
         }
@@ -1046,36 +984,24 @@
             initGuidedScanner();
         };
 
-        async function initClassicScanner() {
-            document.getElementById('backFromScannerBtn').style.display = 'block';
-            document.getElementById('guidedHeader').style.display = 'none';
-            document.getElementById('classicActions').style.display = 'block';
-            document.getElementById('guidedActions').style.display = 'none';
-            
-            scannerList.value = editArea.value;
-            undoStack = []; redoStack = [];
-            statusEl.innerText = "Ready.";
-            updateScannerRatio();
-            isCameraPaused = true; stopCamera(); document.getElementById('cameraPauseOverlay').classList.add('active');
-        }
+        document.getElementById('saveCurrentBtn').addEventListener('click', () => {
+            saveCarrierData(currentStore, currentCarrier, scannerList.value);
+            const btn = document.getElementById('saveCurrentBtn');
+            const origColor = btn.style.backgroundColor;
+            btn.style.backgroundColor = "#22c55e";
+            setTimeout(() => { btn.style.backgroundColor = origColor; }, 1000);
+        });
 
-        function exitScannerLogic(focusEdit = false) {
+        document.getElementById('backFromScannerBtn').addEventListener('click', () => {
             stopCamera();
-            if (scannerMode === 'classic') editArea.value = scannerList.value; 
             history.back();
-            if (focusEdit) setTimeout(() => editArea.focus(), 100);
-        }
-        document.getElementById('backFromScannerBtn').addEventListener('click', () => exitScannerLogic(false));
-        document.getElementById('doneScannerBtn').addEventListener('click', () => exitScannerLogic(false));
-        document.getElementById('scannerList').addEventListener('click', () => {
-            if (scannerMode === 'classic') exitScannerLogic(true);
         });
 
         // --- CAMERA LOGIC ---
         let isCameraPaused = false;
-        let currentLens = 'main';
+        let rearCameras = [];
+        let currentCameraIndex = 0;
         let activeDeviceId = null;
-        let gyroInitialized = false;
         let gridState = 0;
 
         async function startCamera(deviceId = null) {
@@ -1097,27 +1023,29 @@
             } catch (err) { statusEl.innerText = "Camera Error."; }
         }
 
-        async function switchLens(targetLens) {
-            if (currentLens === targetLens) return;
+        async function switchLens(direction) {
             try {
-                const devices = await navigator.mediaDevices.enumerateDevices();
-                const videoDevices = devices.filter(d => d.kind === 'videoinput');
-                let targetDevice = null;
+                if (rearCameras.length === 0) {
+                    const devices = await navigator.mediaDevices.enumerateDevices();
+                    rearCameras = devices.filter(d => d.kind === 'videoinput' && (d.facingMode === 'environment' || d.label.toLowerCase().includes('back') || d.label.toLowerCase().includes('rear') || d.label.toLowerCase().includes('camera')));
+                }
                 
-                if (targetLens === 'ultrawide') {
-                    targetDevice = videoDevices.find(d => d.label.toLowerCase().includes('ultrawide') || d.label.toLowerCase().includes('ultra wide') || d.label.toLowerCase().includes('0.5x'));
+                if (rearCameras.length <= 1) return; // No other lenses to switch to
+                
+                if (direction === 'next') {
+                    currentCameraIndex = (currentCameraIndex + 1) % rearCameras.length;
                 } else {
-                    targetDevice = videoDevices.find(d => d.facingMode === 'environment' && !d.label.toLowerCase().includes('ultrawide') && !d.label.toLowerCase().includes('0.5x') && !d.label.toLowerCase().includes('telephoto')) || videoDevices.find(d => d.facingMode === 'environment');
+                    currentCameraIndex = (currentCameraIndex - 1 + rearCameras.length) % rearCameras.length;
                 }
                 
-                if (targetDevice) {
-                    currentLens = targetLens;
-                    activeDeviceId = targetDevice.deviceId;
-                    stopCamera();
-                    await startCamera(activeDeviceId);
-                    statusEl.innerText = targetLens === 'ultrawide' ? "0.5x Lens" : "1x Lens";
-                    setTimeout(() => { if(statusEl.innerText.includes("Lens")) statusEl.innerText = "Ready."; }, 1500);
-                }
+                activeDeviceId = rearCameras[currentCameraIndex].deviceId;
+                stopCamera();
+                await startCamera(activeDeviceId);
+                
+                let lensName = rearCameras[currentCameraIndex].label || `Lens ${currentCameraIndex + 1}`;
+                if (lensName.length > 15) lensName = `Lens ${currentCameraIndex + 1}`;
+                statusEl.innerText = lensName;
+                setTimeout(() => { if(statusEl.innerText === lensName) statusEl.innerText = "Ready."; }, 1500);
             } catch(e) { console.warn("Lens switch failed", e); }
         }
 
@@ -1141,18 +1069,6 @@
             }
         }
 
-        function handleOrientation(e) {
-            if (!e.gamma && e.gamma !== 0) return;
-            const line = document.getElementById('gyroLevelLine');
-            let tilt = e.gamma; 
-            line.style.transform = `translateY(-50%) rotate(${tilt}deg)`;
-            if (Math.abs(tilt) <= 2) {
-                line.style.backgroundColor = '#22c55e';
-            } else {
-                line.style.backgroundColor = 'white';
-            }
-        }
-
         const vc = document.getElementById('videoContainer');
         
         let pinchStartDist = 0;
@@ -1169,29 +1085,14 @@
             if (!isPinching || e.touches.length !== 2) return;
             const currentDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
             const delta = currentDist - pinchStartDist;
-            if (delta < -40) { isPinching = false; switchLens('ultrawide'); } 
-            else if (delta > 40) { isPinching = false; switchLens('main'); } 
+            if (delta < -40) { isPinching = false; switchLens('next'); } 
+            else if (delta > 40) { isPinching = false; switchLens('prev'); } 
         });
         
         vc.addEventListener('touchend', (e) => { if (e.touches.length < 2) isPinching = false; });
 
         vc.addEventListener('click', () => {
             toggleCameraPause();
-            if (!isCameraPaused && !gyroInitialized) {
-                if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-                    DeviceOrientationEvent.requestPermission().then(response => {
-                        if (response === 'granted') {
-                            window.addEventListener('deviceorientation', handleOrientation);
-                            document.getElementById('gyroLevelLine').style.display = 'block';
-                            gyroInitialized = true;
-                        }
-                    }).catch(console.error);
-                } else {
-                    window.addEventListener('deviceorientation', handleOrientation);
-                    document.getElementById('gyroLevelLine').style.display = 'block';
-                    gyroInitialized = true;
-                }
-            }
         });
 
         document.getElementById('gridToggleBtn').addEventListener('click', () => {
