@@ -217,24 +217,14 @@
         .crop-container {
             position: relative; width: 100%; max-width: 400px; 
             border: 3px solid #3b82f6; border-radius: 10px; overflow: hidden; background: #222; margin-bottom: 20px; transition: aspect-ratio 0.3s;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1); perspective: 1000px; transform-style: preserve-3d;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
         #cropImage { position: absolute; transform-origin: 50% 50%; cursor: grab; }
         #cropImage:active { cursor: grabbing; }
-        .perspective-controls { width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
-        .ctrl-row { display: flex; align-items: center; gap: 10px; font-size: 0.85rem; color: #374151; font-weight: bold; }
-        .ctrl-row input { flex-grow: 1; }
-        #cropMask { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); pointer-events: none; z-index: 1; }
-        #cropBox { position: absolute; border: 2px solid #3b82f6; box-sizing: border-box; z-index: 2; pointer-events: none; }
-        .handle { position: absolute; width: 24px; height: 24px; background: #fff; border: 2px solid #3b82f6; border-radius: 50%; pointer-events: auto; }
-        .handle.nw { top: -12px; left: -12px; cursor: nwse-resize; }
-        .handle.ne { top: -12px; right: -12px; cursor: nesw-resize; }
-        .handle.sw { bottom: -12px; left: -12px; cursor: nesw-resize; }
-        .handle.se { bottom: -12px; right: -12px; cursor: nwse-resize; }
-        .handle.n { top: -12px; left: calc(50% - 12px); cursor: ns-resize; }
-        .handle.s { bottom: -12px; left: calc(50% - 12px); cursor: ns-resize; }
-        .handle.e { top: calc(50% - 12px); right: -12px; cursor: ew-resize; }
-        .handle.w { top: calc(50% - 12px); left: -12px; cursor: ew-resize; }
+        #cropSvg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
+        #cropPoly { fill: rgba(0,0,0,0.6); pointer-events: none; }
+        .pt { fill: #3b82f6; stroke: #ffffff; stroke-width: 2px; pointer-events: auto; cursor: grab; }
+        .pt:active { cursor: grabbing; }
         #confirmCropBtn { background-color: #22c55e; color: white; padding: 15px; width: 100%; max-width: 400px; font-size: 1.2rem; }
     </style>
 </head>
@@ -246,7 +236,7 @@
                 <svg class="icon" viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
                 <span id="settingsWarningBadge">!</span>
             </button>
-            <div id="versionLabel">v0.1.0</div>
+            <div id="versionLabel">v0.1.1</div>
         </div>
         <button id="homeBtn" title="Home">
             <svg class="icon" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
@@ -395,20 +385,15 @@
             <div style="width: 70px;"></div> </div>
         <div class="crop-container" id="cropContainer">
             <img id="cropImage" src="" alt="Crop Preview">
-            <div id="cropMask"></div>
-            <div id="cropBox">
-                <div class="handle nw"></div><div class="handle ne"></div>
-                <div class="handle sw"></div><div class="handle se"></div>
-                <div class="handle n"></div><div class="handle s"></div>
-                <div class="handle e"></div><div class="handle w"></div>
-            </div>
+            <svg id="cropSvg" preserveAspectRatio="none">
+                <polygon id="cropPoly" fill-rule="evenodd" points=""></polygon>
+                <circle class="pt" id="pt0" cx="0" cy="0" r="12"></circle>
+                <circle class="pt" id="pt1" cx="0" cy="0" r="12"></circle>
+                <circle class="pt" id="pt2" cx="0" cy="0" r="12"></circle>
+                <circle class="pt" id="pt3" cx="0" cy="0" r="12"></circle>
+            </svg>
         </div>
-        <div class="perspective-controls">
-            <div class="ctrl-row"><label style="width:60px;">Rotate</label><input type="range" id="sliderZ" min="-45" max="45" value="0"></div>
-            <div class="ctrl-row"><label style="width:60px;">Vertical</label><input type="range" id="sliderX" min="-45" max="45" value="0"></div>
-            <div class="ctrl-row"><label style="width:60px;">Horiz</label><input type="range" id="sliderY" min="-45" max="45" value="0"></div>
-            <button id="resetPerspectiveBtn" class="btn-secondary" style="padding: 8px 10px; font-size: 0.9rem; border-radius: 8px; border: 1px solid #d1d5db;">Reset Perspective</button>
-        </div>
+        <button id="rotate90Btn" class="btn-secondary" style="padding: 10px; margin-bottom: 20px; width: 100%; max-width: 400px; font-weight: bold; border-radius: 8px;">⟳ Rotate 90°</button>
         <button id="confirmCropBtn">CONFIRM CROP & SCAN</button>
     </div>
 
@@ -1359,8 +1344,8 @@
         let cropImg = document.getElementById('cropImage');
         let cropContainer = document.getElementById('cropContainer');
         let imgState = { x: 0, y: 0, scale: 1, baseW: 0, baseH: 0, isDragging: false, startX: 0, startY: 0, startDistance: 0, startScale: 1, startCenterX: 0, startCenterY: 0 };
-        let perspectiveState = { rotX: 0, rotY: 0, rotZ: 0 };
-        let cropBoxState = { x: 20, y: 20, w: 200, h: 200 };
+        let cropPoints = [];
+        let imgRotation = 0;
 
         document.getElementById('uploadImageBtn').addEventListener('click', () => {
             stopCamera(); // Pause camera while browsing
@@ -1408,20 +1393,17 @@
                         imgState.scale = 1;
                         imgState.x = (containerW - imgState.baseW) / 2;
                         imgState.y = (containerH - imgState.baseH) / 2;
+                        imgRotation = 0;
                         
-                        perspectiveState = { rotX: 0, rotY: 0, rotZ: 0 };
-                        document.getElementById('sliderX').value = 0;
-                        document.getElementById('sliderY').value = 0;
-                        document.getElementById('sliderZ').value = 0;
+                        const nw = cropImg.naturalWidth;
+                        const nh = cropImg.naturalHeight;
+                        cropPoints = [
+                            { x: nw * 0.1, y: nh * 0.1 },
+                            { x: nw * 0.9, y: nh * 0.1 },
+                            { x: nw * 0.9, y: nh * 0.9 },
+                            { x: nw * 0.1, y: nh * 0.9 }
+                        ];
                         
-                        cropBoxState = { 
-                            x: containerW * 0.1, 
-                            y: containerH * 0.1, 
-                            w: containerW * 0.8, 
-                            h: containerH * 0.8 
-                        };
-                        
-                        if (typeof updateCropBoxUI === 'function') updateCropBoxUI();
                         updateCropTransform();
                     }, 50);
                 };
@@ -1439,71 +1421,80 @@
         function updateCropTransform() {
             cropImg.style.width = `${imgState.baseW}px`;
             cropImg.style.height = `${imgState.baseH}px`;
-            cropImg.style.transform = `translate(${imgState.x}px, ${imgState.y}px) scale(${imgState.scale}) rotateZ(${perspectiveState.rotZ}deg) rotateX(${perspectiveState.rotX}deg) rotateY(${perspectiveState.rotY}deg)`;
+            cropImg.style.transform = `translate(${imgState.x}px, ${imgState.y}px) scale(${imgState.scale}) rotate(${imgRotation}deg)`;
+            updateSVGUI();
         }
 
-        function updateCropBoxUI() {
-            const cb = document.getElementById('cropBox');
-            cb.style.left = `${cropBoxState.x}px`;
-            cb.style.top = `${cropBoxState.y}px`;
-            cb.style.width = `${cropBoxState.w}px`;
-            cb.style.height = `${cropBoxState.h}px`;
+        function imageToScreen(ix, iy) {
+            const nw = cropImg.naturalWidth, nh = cropImg.naturalHeight;
+            let cx = ix - nw/2; let cy = iy - nh/2;
+            let rad = imgRotation * Math.PI / 180;
+            let rx = cx * Math.cos(rad) - cy * Math.sin(rad);
+            let ry = cx * Math.sin(rad) + cy * Math.cos(rad);
+            let sx = rx * (imgState.baseW / nw);
+            let sy = ry * (imgState.baseH / nh);
+            let finalX = sx * imgState.scale + (imgState.x + imgState.baseW/2);
+            let finalY = sy * imgState.scale + (imgState.y + imgState.baseH/2);
+            return { x: finalX, y: finalY };
+        }
+
+        function screenToImage(sx, sy) {
+            const nw = cropImg.naturalWidth, nh = cropImg.naturalHeight;
+            let rx = (sx - (imgState.x + imgState.baseW/2)) / imgState.scale;
+            let ry = (sy - (imgState.y + imgState.baseH/2)) / imgState.scale;
+            let cx = rx * (nw / imgState.baseW);
+            let cy = ry * (nh / imgState.baseH);
+            let rad = -imgRotation * Math.PI / 180;
+            let ix = cx * Math.cos(rad) - cy * Math.sin(rad);
+            let iy = cx * Math.sin(rad) + cy * Math.cos(rad);
+            return { x: ix + nw/2, y: iy + nh/2 };
+        }
+
+        function updateSVGUI() {
+            if (cropPoints.length < 4) return;
+            const cw = cropContainer.clientWidth, ch = cropContainer.clientHeight;
+            const pts = cropPoints.map(p => imageToScreen(p.x, p.y));
             
-            const mask = document.getElementById('cropMask');
-            mask.style.clipPath = `polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%, 0% 0%, ${cropBoxState.x}px ${cropBoxState.y}px, ${cropBoxState.x}px ${cropBoxState.y + cropBoxState.h}px, ${cropBoxState.x + cropBoxState.w}px ${cropBoxState.y + cropBoxState.h}px, ${cropBoxState.x + cropBoxState.w}px ${cropBoxState.y}px, ${cropBoxState.x}px ${cropBoxState.y}px)`;
+            pts.forEach((p, i) => {
+                const circle = document.getElementById(`pt${i}`);
+                if(circle) { circle.setAttribute('cx', p.x); circle.setAttribute('cy', p.y); }
+            });
+            
+            const poly = document.getElementById('cropPoly');
+            if(poly) {
+                const outer = `0,0 ${cw},0 ${cw},${ch} 0,${ch}`;
+                const inner = pts.map(p => `${p.x},${p.y}`).join(' ');
+                poly.setAttribute('points', `${outer} ${inner}`);
+            }
         }
 
-        let activeHandle = null, dragStartX, dragStartY, initialBox;
-
-        function handleDragMove(e) {
-            if (!activeHandle) return;
+        let activePtIdx = -1;
+        function handlePtDragMove(e) {
+            if(activePtIdx < 0) return;
             const clientX = e.touches ? e.touches[0].clientX : e.clientX;
             const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-            const dx = clientX - dragStartX;
-            const dy = clientY - dragStartY;
-            const minSize = 50;
+            const rect = cropContainer.getBoundingClientRect();
+            const sx = clientX - rect.left;
+            const sy = clientY - rect.top;
             
-            let { x, y, w, h } = initialBox;
-            const cls = activeHandle.className;
-            
-            const hasW = /\bw\b|\bnw\b|\bsw\b/.test(cls);
-            const hasE = /\be\b|\bne\b|\bse\b/.test(cls);
-            const hasN = /\bn\b|\bnw\b|\bne\b/.test(cls);
-            const hasS = /\bs\b|\bsw\b|\bse\b/.test(cls);
-            
-            if (hasW) { x += dx; w -= dx; if (w < minSize) { x -= minSize - w; w = minSize; } }
-            if (hasE) { w += dx; if (w < minSize) w = minSize; }
-            if (hasN) { y += dy; h -= dy; if (h < minSize) { y -= minSize - h; h = minSize; } }
-            if (hasS) { h += dy; if (h < minSize) h = minSize; }
-            
-            const cw = cropContainer.clientWidth, ch = cropContainer.clientHeight;
-            if (x < 0) { w += x; x = 0; }
-            if (y < 0) { h += y; y = 0; }
-            if (x + w > cw) { w = cw - x; }
-            if (y + h > ch) { h = ch - y; }
-            
-            cropBoxState = { x, y, w, h };
-            updateCropBoxUI();
+            cropPoints[activePtIdx] = screenToImage(sx, sy);
+            updateSVGUI();
         }
-
-        function handleDragEnd() {
-            activeHandle = null;
-            window.removeEventListener('mousemove', handleDragMove);
-            window.removeEventListener('mouseup', handleDragEnd);
-            window.removeEventListener('touchmove', handleDragMove);
-            window.removeEventListener('touchend', handleDragEnd);
+        function handlePtDragEnd() {
+            activePtIdx = -1;
+            window.removeEventListener('mousemove', handlePtDragMove);
+            window.removeEventListener('mouseup', handlePtDragEnd);
+            window.removeEventListener('touchmove', handlePtDragMove);
+            window.removeEventListener('touchend', handlePtDragEnd);
         }
-
-        function startHandleDrag(e, handleNode) {
+        function startPtDrag(e, idx) {
             e.preventDefault && e.preventDefault();
-            activeHandle = handleNode;
-            dragStartX = e.touches ? e.touches[0].clientX : e.clientX;
-            dragStartY = e.touches ? e.touches[0].clientY : e.clientY;
-            initialBox = { ...cropBoxState };
-            window.addEventListener('mousemove', handleDragMove);
-            window.addEventListener('mouseup', handleDragEnd);
-            window.addEventListener('touchmove', handleDragMove, {passive: false});
-            window.addEventListener('touchend', handleDragEnd);
+            e.stopPropagation && e.stopPropagation();
+            activePtIdx = idx;
+            window.addEventListener('mousemove', handlePtDragMove);
+            window.addEventListener('mouseup', handlePtDragEnd);
+            window.addEventListener('touchmove', handlePtDragMove, {passive: false});
+            window.addEventListener('touchend', handlePtDragEnd);
         }
 
         // Touch & Mouse Panning and Pinch-to-Zoom
@@ -1567,89 +1558,100 @@
             }
         });
 
+        document.getElementById('rotate90Btn').addEventListener('click', () => {
+            imgRotation = (imgRotation + 90) % 360;
+            updateCropTransform();
+        });
+
         // Confirm Crop & Send to OCR
         document.getElementById('confirmCropBtn').addEventListener('click', async () => {
             const btn = document.getElementById('confirmCropBtn');
             btn.disabled = true;
             btn.innerText = "PROCESSING...";
-
-            // Let the UI paint the "PROCESSING..." text before freezing the thread
             await new Promise(r => setTimeout(r, 50));
 
-            // Extract the 3D matrix computed by the browser
-            const computedStyle = window.getComputedStyle(cropImg);
-            const matrix = new DOMMatrix(computedStyle.transform);
+            const nw = cropImg.naturalWidth, nh = cropImg.naturalHeight;
+            const pts = cropPoints;
             
-            const m11 = matrix.m11, m12 = matrix.m12, m14 = matrix.m14;
-            const m21 = matrix.m21, m22 = matrix.m22, m24 = matrix.m24;
-            const m41 = matrix.m41, m42 = matrix.m42, m44 = matrix.m44;
-
-            const ratio = cropImg.naturalWidth / imgState.baseW;
-            let outW = Math.round(cropBoxState.w * ratio);
-            let outH = Math.round(cropBoxState.h * ratio);
+            const w1 = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+            const w2 = Math.hypot(pts[2].x - pts[3].x, pts[2].y - pts[3].y);
+            const h1 = Math.hypot(pts[1].x - pts[2].x, pts[1].y - pts[2].y);
+            const h2 = Math.hypot(pts[3].x - pts[0].x, pts[3].y - pts[0].y);
             
-            // Limit output max dimension to 2000px to prevent iOS memory crashes
-            const maxRes = 2000;
+            let outW = Math.max(w1, w2);
+            let outH = Math.max(h1, h2);
+            
+            const maxRes = 1800;
             if (outW > maxRes || outH > maxRes) {
                 const down = maxRes / Math.max(outW, outH);
-                outW = Math.round(outW * down);
-                outH = Math.round(outH * down);
+                outW *= down; outH *= down;
+            }
+            outW = Math.round(outW); outH = Math.round(outH);
+            canvas.width = outW; canvas.height = outH;
+            
+            const src = [pts[0].x, pts[0].y, pts[1].x, pts[1].y, pts[2].x, pts[2].y, pts[3].x, pts[3].y];
+            const dst = [0, 0, outW, 0, outW, outH, 0, outH];
+
+            // 8-equation Matrix Solver for Homography
+            function getHomography(src, dst) {
+                const A = [];
+                for(let i=0; i<4; i++){
+                    const x = dst[i*2], y = dst[i*2+1];
+                    const u = src[i*2], v = src[i*2+1];
+                    A.push([x, y, 1, 0, 0, 0, -u*x, -u*y, u]);
+                    A.push([0, 0, 0, x, y, 1, -v*x, -v*y, v]);
+                }
+                for(let i=0; i<8; i++){
+                    let pivot = i;
+                    for(let j=i+1; j<8; j++){
+                        if(Math.abs(A[j][i]) > Math.abs(A[pivot][i])) pivot = j;
+                    }
+                    const temp = A[i]; A[i] = A[pivot]; A[pivot] = temp;
+                    for(let j=i+1; j<8; j++){
+                        const f = A[j][i] / A[i][i];
+                        for(let k=i; k<9; k++) A[j][k] -= A[i][k] * f;
+                    }
+                }
+                const h = new Array(9);
+                h[8] = 1;
+                for(let i=7; i>=0; i--){
+                    let sum = A[i][8];
+                    for(let j=i+1; j<8; j++) sum -= A[i][j] * h[j];
+                    h[i] = sum / A[i][i];
+                }
+                return h;
             }
 
-            canvas.width = outW;
-            canvas.height = outH;
-            
-            // Draw un-transformed 4K image to offscreen canvas to sample from
+            const H = getHomography(src, dst);
+
             const offscreen = document.createElement('canvas');
-            offscreen.width = cropImg.naturalWidth;
-            offscreen.height = cropImg.naturalHeight;
+            offscreen.width = nw; offscreen.height = nh;
             const offCtx = offscreen.getContext('2d', { willReadFrequently: true });
             offCtx.drawImage(cropImg, 0, 0);
             
-            const srcData = offCtx.getImageData(0, 0, offscreen.width, offscreen.height);
+            const srcData = offCtx.getImageData(0, 0, nw, nh);
             const dstData = ctx.createImageData(outW, outH);
-
-            const sData = srcData.data;
-            const dData = dstData.data;
-            const srcW = offscreen.width;
-            const srcH = offscreen.height;
-
-            // Pure Vanilla JS Analytical Reverse Perspective Mapping
-            for (let cy = 0; cy < outH; cy++) {
-                for (let cx = 0; cx < outW; cx++) {
-                    const sx = cropBoxState.x + (cx / outW) * cropBoxState.w;
-                    const sy = cropBoxState.y + (cy / outH) * cropBoxState.h;
-
-                    const A = sx * m14 - m11;
-                    const B = sx * m24 - m21;
-                    const C = m41 - sx * m44;
-                    const D = sy * m14 - m12;
-                    const E = sy * m24 - m22;
-                    const F = m42 - sy * m44;
-
-                    const det = A * E - B * D;
-                    if (Math.abs(det) < 0.000001) continue;
-
-                    const lx = (C * E - B * F) / det;
-                    const ly = (A * F - C * D) / det;
-
-                    const px = Math.round(((lx + imgState.baseW / 2) / imgState.baseW) * srcW);
-                    const py = Math.round(((ly + imgState.baseH / 2) / imgState.baseH) * srcH);
-
-                    if (px >= 0 && px < srcW && py >= 0 && py < srcH) {
-                        const srcIdx = (py * srcW + px) * 4;
-                        const dstIdx = (cy * outW + cx) * 4;
+            const sData = srcData.data; const dData = dstData.data;
+            
+            for(let cy=0; cy<outH; cy++){
+                for(let cx=0; cx<outW; cx++){
+                    const z = H[6]*cx + H[7]*cy + H[8];
+                    const px = Math.round((H[0]*cx + H[1]*cy + H[2]) / z);
+                    const py = Math.round((H[3]*cx + H[4]*cy + H[5]) / z);
+                    
+                    const dstIdx = (cy*outW + cx)*4;
+                    if(px >= 0 && px < nw && py >= 0 && py < nh){
+                        const srcIdx = (py*nw + px)*4;
                         dData[dstIdx] = sData[srcIdx];
-                        dData[dstIdx + 1] = sData[srcIdx + 1];
-                        dData[dstIdx + 2] = sData[srcIdx + 2];
-                        dData[dstIdx + 3] = sData[srcIdx + 3]; 
+                        dData[dstIdx+1] = sData[srcIdx+1];
+                        dData[dstIdx+2] = sData[srcIdx+2];
+                        dData[dstIdx+3] = sData[srcIdx+3];
                     } else {
-                        const dstIdx = (cy * outW + cx) * 4;
-                        dData[dstIdx + 3] = 255; // Fill black for out-of-bounds
+                        dData[dstIdx+3] = 255; // Fill black for out-of-bounds
                     }
                 }
             }
-
+            
             ctx.putImageData(dstData, 0, 0);
             const base64Crop = canvas.toDataURL('image/jpeg', 0.9);
 
@@ -1661,22 +1663,13 @@
             startCamera();
         });
 
-        // Attach Perspective Slider & Handle Listeners
-        document.getElementById('sliderX').addEventListener('input', (e) => { perspectiveState.rotX = e.target.value; updateCropTransform(); });
-        document.getElementById('sliderY').addEventListener('input', (e) => { perspectiveState.rotY = e.target.value; updateCropTransform(); });
-        document.getElementById('sliderZ').addEventListener('input', (e) => { perspectiveState.rotZ = e.target.value; updateCropTransform(); });
-        document.getElementById('resetPerspectiveBtn').addEventListener('click', () => {
-            perspectiveState = { rotX: 0, rotY: 0, rotZ: 0 };
-            document.getElementById('sliderX').value = 0;
-            document.getElementById('sliderY').value = 0;
-            document.getElementById('sliderZ').value = 0;
-            updateCropTransform();
-        });
-
         setTimeout(() => {
-            document.querySelectorAll('.handle').forEach(h => {
-                h.addEventListener('mousedown', (e) => startHandleDrag(e, h));
-                h.addEventListener('touchstart', (e) => startHandleDrag(e, h), {passive: false});
+            [0, 1, 2, 3].forEach(i => {
+                const pt = document.getElementById(`pt${i}`);
+                if(pt) {
+                    pt.addEventListener('mousedown', (e) => startPtDrag(e, i));
+                    pt.addEventListener('touchstart', (e) => startPtDrag(e, i), {passive: false});
+                }
             });
         }, 100);
     </script>
