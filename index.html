@@ -234,7 +234,7 @@
                 <svg class="icon" viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
                 <span id="settingsWarningBadge">!</span>
             </button>
-            <div id="versionLabel">v0.1.6</div>
+            <div id="versionLabel">v0.1.7</div>
         </div>
         <button id="homeBtn" title="Home">
             <svg class="icon" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
@@ -1000,28 +1000,16 @@
 
         // --- CAMERA LOGIC ---
         let isCameraPaused = false;
-        let rearCameras = [];
-        let currentCameraIndex = 0;
-        let activeDeviceId = null;
         let gridState = 0;
-        
-        let hasNativeZoom = false;
-        let ptzTrack = null;
-        let currentZoom = 1;
-        let minZoom = 1;
-        let maxZoom = 1;
-        let startZoom = 1;
 
-        async function startCamera(deviceId = null) {
+        async function startCamera() {
             if (currentStream) return;
             try {
                 const constraints = {
                     video: { 
-                        facingMode: deviceId ? undefined : 'environment', 
-                        deviceId: deviceId ? { exact: deviceId } : undefined,
+                        facingMode: 'environment', 
                         width: { ideal: 4096 }, 
                         height: { ideal: 2160 }, 
-                        zoom: true,
                         advanced: [{ focusMode: "continuous" }] 
                     }
                 };
@@ -1029,51 +1017,7 @@
                 video.srcObject = currentStream;
                 isCameraPaused = false;
                 document.getElementById('cameraPauseOverlay').classList.remove('active');
-                
-                ptzTrack = currentStream.getVideoTracks()[0];
-                const capabilities = ptzTrack.getCapabilities ? ptzTrack.getCapabilities() : {};
-                if (capabilities.zoom) {
-                    hasNativeZoom = true;
-                    minZoom = capabilities.zoom.min || 1;
-                    maxZoom = capabilities.zoom.max || 1;
-                    const settings = ptzTrack.getSettings ? ptzTrack.getSettings() : {};
-                    currentZoom = settings.zoom || minZoom;
-                } else {
-                    hasNativeZoom = false;
-                }
             } catch (err) { statusEl.innerText = "Camera Error."; }
-        }
-
-        async function switchLens(direction) {
-            try {
-                if (rearCameras.length === 0) {
-                    const devices = await navigator.mediaDevices.enumerateDevices();
-                    rearCameras = devices.filter(d => {
-                        const lbl = d.label.toLowerCase();
-                        return d.kind === 'videoinput' 
-                            && !lbl.includes('front') 
-                            && d.facingMode !== 'user'
-                            && (d.facingMode === 'environment' || lbl.includes('back') || lbl.includes('rear') || lbl.includes('camera'));
-                    });
-                }
-                
-                if (rearCameras.length <= 1) return; // No other lenses to switch to
-                
-                if (direction === 'next') {
-                    currentCameraIndex = (currentCameraIndex + 1) % rearCameras.length;
-                } else {
-                    currentCameraIndex = (currentCameraIndex - 1 + rearCameras.length) % rearCameras.length;
-                }
-                
-                activeDeviceId = rearCameras[currentCameraIndex].deviceId;
-                stopCamera();
-                await startCamera(activeDeviceId);
-                
-                let lensName = rearCameras[currentCameraIndex].label || `Lens ${currentCameraIndex + 1}`;
-                if (lensName.length > 15) lensName = `Lens ${currentCameraIndex + 1}`;
-                statusEl.innerText = lensName;
-                setTimeout(() => { if(statusEl.innerText === lensName) statusEl.innerText = "Ready."; }, 1500);
-            } catch(e) { console.warn("Lens switch failed", e); }
         }
 
         function stopCamera() {
@@ -1082,7 +1026,7 @@
         
         document.addEventListener('visibilitychange', () => {
             if (document.hidden) stopCamera();
-            else if (document.getElementById('viewScanner').classList.contains('active') && !isCameraPaused) startCamera(activeDeviceId);
+            else if (document.getElementById('viewScanner').classList.contains('active') && !isCameraPaused) startCamera();
         });
 
         function toggleCameraPause() {
@@ -1092,47 +1036,11 @@
                 stopCamera();
                 overlay.classList.add('active');
             } else {
-                startCamera(activeDeviceId);
+                startCamera();
             }
         }
 
         const vc = document.getElementById('videoContainer');
-        
-        let pinchStartDist = 0;
-        let isPinching = false;
-
-        vc.addEventListener('touchstart', (e) => {
-            if (e.touches.length === 2) {
-                isPinching = true;
-                pinchStartDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
-                if (hasNativeZoom) startZoom = currentZoom;
-            }
-        });
-        
-        vc.addEventListener('touchmove', async (e) => {
-            if (!isPinching || e.touches.length !== 2) return;
-            const currentDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
-            
-            if (hasNativeZoom && ptzTrack) {
-                // Path A: Native Zoom
-                const scaleRatio = currentDist / pinchStartDist;
-                let newZoom = startZoom * scaleRatio;
-                newZoom = Math.max(minZoom, Math.min(newZoom, maxZoom));
-                if (newZoom !== currentZoom) {
-                    currentZoom = newZoom;
-                    try {
-                        await ptzTrack.applyConstraints({ advanced: [{ zoom: currentZoom }] });
-                    } catch (err) { /* ignore constraint errors while dragging */ }
-                }
-            } else {
-                // Path B: Fallback Lens Switching
-                const delta = currentDist - pinchStartDist;
-                if (delta < -40) { isPinching = false; switchLens('next'); } 
-                else if (delta > 40) { isPinching = false; switchLens('prev'); } 
-            }
-        });
-        
-        vc.addEventListener('touchend', (e) => { if (e.touches.length < 2) isPinching = false; });
 
         vc.addEventListener('click', () => {
             toggleCameraPause();
