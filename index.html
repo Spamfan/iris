@@ -221,7 +221,8 @@
         }
         #cropImage { width: 100%; height: auto; display: block; }
         #cropSvg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
-        #cropPath { fill: rgba(0,0,0,0.6); pointer-events: auto; cursor: move; }
+        #cropOverlay { fill: rgba(0,0,0,0.6); pointer-events: auto; }
+        #cropBox { fill: transparent; pointer-events: auto; cursor: pointer; }
         .pt { fill: #3b82f6; stroke: #ffffff; stroke-width: 2px; pointer-events: auto; cursor: grab; }
         .pt:active { cursor: grabbing; }
         #confirmCropBtn { background-color: #22c55e; color: white; padding: 15px; width: 100%; max-width: 400px; font-size: 1.2rem; }
@@ -235,7 +236,7 @@
                 <svg class="icon" viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
                 <span id="settingsWarningBadge">!</span>
             </button>
-            <div id="versionLabel">v0.1.2</div>
+            <div id="versionLabel">v0.1.3</div>
         </div>
         <button id="homeBtn" title="Home">
             <svg class="icon" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
@@ -385,7 +386,8 @@
         <div class="crop-container" id="cropContainer">
             <img id="cropImage" src="" alt="Crop Preview">
             <svg id="cropSvg" preserveAspectRatio="none">
-                <path id="cropPath" fill-rule="evenodd" d=""></path>
+                <path id="cropOverlay" fill-rule="evenodd" d=""></path>
+                <polygon id="cropBox" points=""></polygon>
                 <circle class="pt" id="pt0" cx="0" cy="0" r="12"></circle>
                 <circle class="pt" id="pt1" cx="0" cy="0" r="12"></circle>
                 <circle class="pt" id="pt2" cx="0" cy="0" r="12"></circle>
@@ -933,7 +935,7 @@
         function updateScannerRatio() {
             const targetRatio = "5 / 4";
             document.getElementById('videoContainer').style.aspectRatio = targetRatio;
-            document.getElementById('cropContainer').style.aspectRatio = targetRatio;
+            document.getElementById('cropContainer').style.aspectRatio = "auto";
         }
 
         async function initGuidedScanner() {
@@ -1435,6 +1437,8 @@
             return { x: sx * scale, y: sy * scale };
         }
 
+        let isBoxSelected = false;
+
         function updateSVGUI() {
             if (cropPoints.length < 4) return;
             const cw = cropContainer.clientWidth, ch = cropContainer.clientHeight;
@@ -1442,14 +1446,34 @@
             
             pts.forEach((p, i) => {
                 const circle = document.getElementById(`pt${i}`);
-                if(circle) { circle.setAttribute('cx', p.x); circle.setAttribute('cy', p.y); }
+                if(circle) { 
+                    circle.setAttribute('cx', p.x); 
+                    circle.setAttribute('cy', p.y);
+                    circle.style.display = isBoxSelected ? 'none' : 'block';
+                }
             });
             
-            const path = document.getElementById('cropPath');
-            if(path) {
+            const overlay = document.getElementById('cropOverlay');
+            if(overlay) {
                 const outer = `M 0,0 L ${cw},0 L ${cw},${ch} L 0,${ch} Z`;
                 const inner = `M ${pts[0].x},${pts[0].y} L ${pts[1].x},${pts[1].y} L ${pts[2].x},${pts[2].y} L ${pts[3].x},${pts[3].y} Z`;
-                path.setAttribute('d', `${outer} ${inner}`);
+                overlay.setAttribute('d', `${outer} ${inner}`);
+            }
+
+            const box = document.getElementById('cropBox');
+            if(box) {
+                box.setAttribute('points', `${pts[0].x},${pts[0].y} ${pts[1].x},${pts[1].y} ${pts[2].x},${pts[2].y} ${pts[3].x},${pts[3].y}`);
+                if (isBoxSelected) {
+                    box.setAttribute('stroke', '#22c55e');
+                    box.setAttribute('stroke-width', '3');
+                    box.setAttribute('stroke-dasharray', '5,5');
+                    box.style.cursor = 'move';
+                } else {
+                    box.setAttribute('stroke', 'transparent');
+                    box.removeAttribute('stroke-width');
+                    box.removeAttribute('stroke-dasharray');
+                    box.style.cursor = 'pointer';
+                }
             }
         }
 
@@ -1519,75 +1543,83 @@
             window.addEventListener('touchend', handleDragEnd);
         }
 
-        // Attach box drag listener
+        let boxPinchStartDist = 0;
+        let boxPinchStartPts = [];
+
+        // Attach smart box drag and pinch listeners
         setTimeout(() => {
-            const path = document.getElementById('cropPath');
-            if (path) {
-                path.addEventListener('mousedown', startBoxDrag);
-                path.addEventListener('touchstart', startBoxDrag, {passive: false});
+            const overlay = document.getElementById('cropOverlay');
+            const box = document.getElementById('cropBox');
+            
+            if (overlay) {
+                overlay.addEventListener('mousedown', () => { isBoxSelected = false; updateSVGUI(); });
+                overlay.addEventListener('touchstart', (e) => { e.preventDefault(); isBoxSelected = false; updateSVGUI(); }, {passive: false});
+            }
+            
+            if (box) {
+                box.addEventListener('mousedown', (e) => {
+                    if (!isBoxSelected) {
+                        isBoxSelected = true;
+                        updateSVGUI();
+                    } else {
+                        startBoxDrag(e);
+                    }
+                });
+                
+                box.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    if (!isBoxSelected) {
+                        isBoxSelected = true;
+                        updateSVGUI();
+                        return;
+                    }
+                    
+                    if (e.touches.length === 1) {
+                        startBoxDrag(e);
+                    } else if (e.touches.length === 2) {
+                        activePtIdx = -1;
+                        dragBoxStart = null;
+                        const t1 = e.touches[0], t2 = e.touches[1];
+                        boxPinchStartDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+                        boxPinchStartPts = JSON.parse(JSON.stringify(cropPoints));
+                        
+                        window.addEventListener('touchmove', handleBoxPinch, {passive: false});
+                        window.addEventListener('touchend', endBoxPinch);
+                    }
+                }, {passive: false});
             }
         }, 100);
 
-        // Touch & Mouse Panning and Pinch-to-Zoom
-        const startDrag = (clientX, clientY) => {
-            imgState.isDragging = true;
-            imgState.startX = clientX - imgState.x;
-            imgState.startY = clientY - imgState.y;
-        };
-        const moveDrag = (clientX, clientY) => {
-            if (!imgState.isDragging) return;
-            imgState.x = clientX - imgState.startX;
-            imgState.y = clientY - imgState.startY;
-            updateCropTransform();
-        };
-        const endDrag = () => { imgState.isDragging = false; };
-
-        cropImg.addEventListener('mousedown', (e) => { e.preventDefault(); startDrag(e.clientX, e.clientY); });
-        window.addEventListener('mousemove', (e) => moveDrag(e.clientX, e.clientY));
-        window.addEventListener('mouseup', endDrag);
-
-        cropImg.addEventListener('touchstart', (e) => {
-            if (e.touches.length === 2) {
-                imgState.isDragging = false;
-                const t1 = e.touches[0], t2 = e.touches[1];
-                imgState.startDistance = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
-                imgState.startScale = imgState.scale;
-                imgState.startCenterX = (t1.clientX + t2.clientX) / 2;
-                imgState.startCenterY = (t1.clientY + t2.clientY) / 2;
-                imgState.startX = imgState.startCenterX - imgState.x;
-                imgState.startY = imgState.startCenterY - imgState.y;
-            } else if (e.touches.length === 1) {
-                startDrag(e.touches[0].clientX, e.touches[0].clientY);
-            }
-        });
-
-        window.addEventListener('touchmove', (e) => {
-            if (e.touches.length === 2) {
+        function handleBoxPinch(e) {
+            if (e.touches.length === 2 && isBoxSelected) {
                 e.preventDefault();
                 const t1 = e.touches[0], t2 = e.touches[1];
-                const newDistance = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
-                const currentCenterX = (t1.clientX + t2.clientX) / 2;
-                const currentCenterY = (t1.clientY + t2.clientY) / 2;
+                const newDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+                const scale = newDist / boxPinchStartDist;
                 
-                const newScale = imgState.startScale * (newDistance / imgState.startDistance);
-                const scaleRatio = newScale / imgState.startScale;
+                let cx = 0, cy = 0;
+                boxPinchStartPts.forEach(p => { cx += p.x; cy += p.y; });
+                cx /= 4; cy /= 4;
                 
-                imgState.x = currentCenterX - (imgState.startX * scaleRatio);
-                imgState.y = currentCenterY - (imgState.startY * scaleRatio);
-                imgState.scale = newScale;
-                updateCropTransform();
-            } else if (e.touches.length === 1 && imgState.isDragging) {
-                e.preventDefault();
-                moveDrag(e.touches[0].clientX, e.touches[0].clientY);
+                let canScale = true;
+                const newPts = boxPinchStartPts.map(p => {
+                    const nx = cx + (p.x - cx) * scale;
+                    const ny = cy + (p.y - cy) * scale;
+                    if (nx < 0 || nx > cropImg.naturalWidth || ny < 0 || ny > cropImg.naturalHeight) canScale = false;
+                    return { x: nx, y: ny };
+                });
+                
+                if (canScale) {
+                    cropPoints = newPts;
+                    updateSVGUI();
+                }
             }
-        }, { passive: false });
+        }
 
-        window.addEventListener('touchend', (e) => {
-            if (e.touches.length < 2) {
-                if (e.touches.length === 1) startDrag(e.touches[0].clientX, e.touches[0].clientY);
-                else endDrag();
-            }
-        });
+        function endBoxPinch() {
+            window.removeEventListener('touchmove', handleBoxPinch);
+            window.removeEventListener('touchend', endBoxPinch);
+        }
 
         document.getElementById('rotate90Btn').addEventListener('click', () => {
             const offscreen = document.createElement('canvas');
