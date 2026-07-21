@@ -220,11 +220,18 @@
             box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex;
         }
         #cropImage { width: 100%; height: auto; display: block; }
+        #cropWrapper { position: absolute; top: 0; left: 0; transform-origin: 0 0; }
         #cropSvg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
         #cropOverlay { fill: rgba(0,0,0,0.6); pointer-events: auto; }
         #cropBox { fill: transparent; pointer-events: auto; cursor: pointer; }
-        .pt { fill: #3b82f6; stroke: #ffffff; stroke-width: 2px; pointer-events: auto; cursor: grab; }
+        .edge-handle { stroke: #ffffff; stroke-width: 6px; stroke-linecap: round; pointer-events: auto; cursor: grab; }
+        .pt { fill: rgba(59, 130, 246, 0.6); stroke: #ffffff; stroke-width: 2px; pointer-events: auto; cursor: grab; }
         .pt:active { cursor: grabbing; }
+        #loupe { position: absolute; width: 100px; height: 100px; border: 3px solid #fff; border-radius: 50%; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.5); pointer-events: none; z-index: 100; display: none; background: #000; }
+        .loupe-crosshair { position: absolute; top: 50%; left: 50%; width: 20px; height: 20px; transform: translate(-50%, -50%); pointer-events: none; }
+        .loupe-crosshair::before, .loupe-crosshair::after { content: ''; position: absolute; background: #22c55e; }
+        .loupe-crosshair::before { top: 9px; left: 0; width: 20px; height: 2px; }
+        .loupe-crosshair::after { top: 0; left: 9px; width: 2px; height: 20px; }
         #confirmCropBtn { background-color: #22c55e; color: white; padding: 15px; width: 100%; max-width: 400px; font-size: 1.2rem; }
     </style>
 </head>
@@ -236,7 +243,7 @@
                 <svg class="icon" viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
                 <span id="settingsWarningBadge">!</span>
             </button>
-            <div id="versionLabel">v0.1.3</div>
+            <div id="versionLabel">v0.1.4</div>
         </div>
         <button id="homeBtn" title="Home">
             <svg class="icon" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
@@ -382,17 +389,28 @@
         <div class="crop-header">
             <button id="cancelCropBtn">❮ CANCEL</button>
             <h3>Crop Image</h3>
-            <div style="width: 70px;"></div> </div>
-        <div class="crop-container" id="cropContainer">
-            <img id="cropImage" src="" alt="Crop Preview">
-            <svg id="cropSvg" preserveAspectRatio="none">
-                <path id="cropOverlay" fill-rule="evenodd" d=""></path>
-                <polygon id="cropBox" points=""></polygon>
-                <circle class="pt" id="pt0" cx="0" cy="0" r="12"></circle>
-                <circle class="pt" id="pt1" cx="0" cy="0" r="12"></circle>
-                <circle class="pt" id="pt2" cx="0" cy="0" r="12"></circle>
-                <circle class="pt" id="pt3" cx="0" cy="0" r="12"></circle>
-            </svg>
+            <button id="aspectLockBtn" class="btn-secondary" style="padding: 5px 15px; border-radius: 8px; font-size: 1.2rem;" title="Lock Aspect Ratio">🔓</button>
+        </div>
+        <div class="crop-container" id="cropContainer" style="position: relative; overflow: hidden; display: block;">
+            <div id="cropWrapper">
+                <img id="cropImage" src="" alt="Crop Preview" style="width: 100%; height: 100%; display: block;">
+                <svg id="cropSvg" preserveAspectRatio="none">
+                    <path id="cropOverlay" fill-rule="evenodd" d=""></path>
+                    <polygon id="cropBox" points=""></polygon>
+                    <line class="edge-handle" id="edge0"></line>
+                    <line class="edge-handle" id="edge1"></line>
+                    <line class="edge-handle" id="edge2"></line>
+                    <line class="edge-handle" id="edge3"></line>
+                    <circle class="pt" id="pt0" cx="0" cy="0" r="16"></circle>
+                    <circle class="pt" id="pt1" cx="0" cy="0" r="16"></circle>
+                    <circle class="pt" id="pt2" cx="0" cy="0" r="16"></circle>
+                    <circle class="pt" id="pt3" cx="0" cy="0" r="16"></circle>
+                </svg>
+            </div>
+            <div id="loupe">
+                <canvas id="loupeCanvas" width="100" height="100"></canvas>
+                <div class="loupe-crosshair"></div>
+            </div>
         </div>
         <button id="rotate90Btn" class="btn-secondary" style="padding: 10px; margin-bottom: 20px; width: 100%; max-width: 400px; font-weight: bold; border-radius: 8px;">⟳ Rotate 90°</button>
         <button id="confirmCropBtn">CONFIRM CROP & SCAN</button>
@@ -1383,19 +1401,29 @@
                     setTimeout(() => {
                         updateScannerRatio(); // Ensure correct ratio is applied to container before measuring
                         
-                        // Reset State and Calculate Aspect Ratio
+                        // Setup Native Aspect Ratio & Wrapper
                         const containerW = cropContainer.clientWidth;
                         const containerH = cropContainer.clientHeight;
                         const aspect = cropImg.naturalWidth / cropImg.naturalHeight;
-                        const containerAspect = containerW / containerH;
                         
-                        if (aspect > containerAspect) {
-                            imgState.baseH = containerH;
-                            imgState.baseW = containerH * aspect;
-                        } else {
+                        // Fit native image bounds inside the container perfectly
+                        if (cropImg.naturalWidth / containerW > cropImg.naturalHeight / containerH) {
                             imgState.baseW = containerW;
                             imgState.baseH = containerW / aspect;
+                        } else {
+                            imgState.baseH = containerH;
+                            imgState.baseW = containerH * aspect;
                         }
+                        
+                        const wrapper = document.getElementById('cropWrapper');
+                        wrapper.style.width = imgState.baseW + 'px';
+                        wrapper.style.height = imgState.baseH + 'px';
+                        
+                        cwTx = (containerW - imgState.baseW) / 2;
+                        cwTy = (containerH - imgState.baseH) / 2;
+                        cwScale = 1;
+                        wrapper.style.transition = 'none';
+                        wrapper.style.transform = `translate(${cwTx}px, ${cwTy}px) scale(${cwScale})`;
                         
                         const nw = cropImg.naturalWidth;
                         const nh = cropImg.naturalHeight;
@@ -1437,25 +1465,64 @@
             return { x: sx * scale, y: sy * scale };
         }
 
-        let isBoxSelected = false;
+        let cropMode = 'A'; // A = Edit/Perspective, B = Viewport Pan/Zoom
+        let isAspectLocked = false;
+        let cwTx = 0, cwTy = 0, cwScale = 1;
+        let loupeActive = false;
 
-        function updateSVGUI() {
+        document.getElementById('aspectLockBtn').addEventListener('click', (e) => {
+            isAspectLocked = !isAspectLocked;
+            e.target.innerText = isAspectLocked ? '🔗' : '🔓';
+            e.target.style.backgroundColor = isAspectLocked ? '#3b82f6' : '#e5e7eb';
+            e.target.style.color = isAspectLocked ? 'white' : '#374151';
+        });
+
+        function imageToScreen(ix, iy) {
+            const scale = imgState.baseW / cropImg.naturalWidth;
+            return { x: ix * scale, y: iy * scale };
+        }
+
+        function screenToImage(clientX, clientY) {
+            const rect = cropContainer.getBoundingClientRect();
+            const sx = clientX - rect.left;
+            const sy = clientY - rect.top;
+            const wrapperX = (sx - cwTx) / cwScale;
+            const wrapperY = (sy - cwTy) / cwScale;
+            const scale = cropImg.naturalWidth / imgState.baseW;
+            return { x: wrapperX * scale, y: wrapperY * scale };
+        }
+
+        function updateSVGUI(touchClientX = 0, touchClientY = 0) {
             if (cropPoints.length < 4) return;
-            const cw = cropContainer.clientWidth, ch = cropContainer.clientHeight;
+            const cw = imgState.baseW, ch = imgState.baseH;
             const pts = cropPoints.map(p => imageToScreen(p.x, p.y));
             
-            pts.forEach((p, i) => {
+            // Update Corners & Edges
+            for(let i=0; i<4; i++) {
                 const circle = document.getElementById(`pt${i}`);
                 if(circle) { 
-                    circle.setAttribute('cx', p.x); 
-                    circle.setAttribute('cy', p.y);
-                    circle.style.display = isBoxSelected ? 'none' : 'block';
+                    circle.setAttribute('cx', pts[i].x); circle.setAttribute('cy', pts[i].y);
+                    circle.style.display = (cropMode === 'A') ? 'block' : 'none';
                 }
-            });
+                
+                const pA = pts[i], pB = pts[(i+1)%4];
+                const mx = (pA.x + pB.x)/2, my = (pA.y + pB.y)/2;
+                const dx = pB.x - pA.x, dy = pB.y - pA.y;
+                const len = Math.hypot(dx, dy);
+                const ux = dx/len, uy = dy/len;
+                const hLen = 25; // 50px line
+                
+                const edge = document.getElementById(`edge${i}`);
+                if(edge) {
+                    edge.setAttribute('x1', mx - ux*hLen); edge.setAttribute('y1', my - uy*hLen);
+                    edge.setAttribute('x2', mx + ux*hLen); edge.setAttribute('y2', my + uy*hLen);
+                    edge.style.display = (cropMode === 'A') ? 'block' : 'none';
+                }
+            }
             
             const overlay = document.getElementById('cropOverlay');
             if(overlay) {
-                const outer = `M 0,0 L ${cw},0 L ${cw},${ch} L 0,${ch} Z`;
+                const outer = `M -5000,-5000 L 5000,-5000 L 5000,5000 L -5000,5000 Z`; // Overbleed to cover panning
                 const inner = `M ${pts[0].x},${pts[0].y} L ${pts[1].x},${pts[1].y} L ${pts[2].x},${pts[2].y} L ${pts[3].x},${pts[3].y} Z`;
                 overlay.setAttribute('d', `${outer} ${inner}`);
             }
@@ -1463,18 +1530,51 @@
             const box = document.getElementById('cropBox');
             if(box) {
                 box.setAttribute('points', `${pts[0].x},${pts[0].y} ${pts[1].x},${pts[1].y} ${pts[2].x},${pts[2].y} ${pts[3].x},${pts[3].y}`);
-                if (isBoxSelected) {
-                    box.setAttribute('stroke', '#22c55e');
-                    box.setAttribute('stroke-width', '3');
-                    box.setAttribute('stroke-dasharray', '5,5');
-                    box.style.cursor = 'move';
+                if (cropMode === 'B') {
+                    box.setAttribute('stroke', '#22c55e'); box.setAttribute('stroke-width', '3'); box.setAttribute('stroke-dasharray', '5,5');
                 } else {
-                    box.setAttribute('stroke', 'transparent');
-                    box.removeAttribute('stroke-width');
-                    box.removeAttribute('stroke-dasharray');
-                    box.style.cursor = 'pointer';
+                    box.setAttribute('stroke', 'transparent'); box.removeAttribute('stroke-width'); box.removeAttribute('stroke-dasharray');
                 }
             }
+
+            // Loupe Engine Render
+            const loupe = document.getElementById('loupe');
+            if (loupeActive && touchClientX > 0 && activePtIdx >= 0 && activePtIdx <= 3) {
+                loupe.style.display = 'block';
+                const rect = cropContainer.getBoundingClientRect();
+                loupe.style.left = Math.max(10, Math.min(rect.width - 110, (touchClientX - rect.left - 50))) + 'px';
+                loupe.style.top = Math.max(10, (touchClientY - rect.top - 130)) + 'px';
+                
+                const lCtx = document.getElementById('loupeCanvas').getContext('2d');
+                lCtx.clearRect(0, 0, 100, 100);
+                const srcSize = 40; // 2.5x magnification (100 / 40)
+                lCtx.drawImage(cropImg, cropPoints[activePtIdx].x - srcSize/2, cropPoints[activePtIdx].y - srcSize/2, srcSize, srcSize, 0, 0, 100, 100);
+            } else {
+                loupe.style.display = 'none';
+            }
+        }
+
+        function autoCenterCrop() {
+            if (cropPoints.length < 4) return;
+            let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+            cropPoints.forEach(p => { minX = Math.min(minX, p.x); minY = Math.min(minY, p.y); maxX = Math.max(maxX, p.x); maxY = Math.max(maxY, p.y); });
+            
+            const scale = imgState.baseW / cropImg.naturalWidth;
+            const wbW = (maxX - minX) * scale, wbH = (maxY - minY) * scale;
+            const wbCx = (minX + (maxX - minX)/2) * scale, wbCy = (minY + (maxY - minY)/2) * scale;
+            
+            const cntW = cropContainer.clientWidth, cntH = cropContainer.clientHeight;
+            const pad = 60;
+            cwScale = Math.min((cntW - pad) / wbW, (cntH - pad) / wbH);
+            if(cwScale > 5) cwScale = 5; if(cwScale < 0.2) cwScale = 0.2;
+            
+            cwTx = (cntW / 2) - (wbCx * cwScale);
+            cwTy = (cntH / 2) - (wbCy * cwScale);
+            
+            const wrapper = document.getElementById('cropWrapper');
+            wrapper.style.transition = 'transform 0.3s cubic-bezier(0.25, 1, 0.5, 1)';
+            wrapper.style.transform = `translate(${cwTx}px, ${cwTy}px) scale(${cwScale})`;
+            setTimeout(() => { wrapper.style.transition = 'none'; }, 300);
         }
 
         let activePtIdx = -1;
@@ -1545,81 +1645,136 @@
 
         let boxPinchStartDist = 0;
         let boxPinchStartPts = [];
+        let interactionStartRatio = 1;
 
-        // Attach smart box drag and pinch listeners
-        setTimeout(() => {
-            const overlay = document.getElementById('cropOverlay');
-            const box = document.getElementById('cropBox');
+        function startInteraction(e, type, idx = -1) {
+            e.preventDefault && e.preventDefault();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
             
-            if (overlay) {
-                overlay.addEventListener('mousedown', () => { isBoxSelected = false; updateSVGUI(); });
-                overlay.addEventListener('touchstart', (e) => { e.preventDefault(); isBoxSelected = false; updateSVGUI(); }, {passive: false});
-            }
-            
-            if (box) {
-                box.addEventListener('mousedown', (e) => {
-                    if (!isBoxSelected) {
-                        isBoxSelected = true;
-                        updateSVGUI();
-                    } else {
-                        startBoxDrag(e);
-                    }
-                });
+            if (type === 'pt' || type === 'edge') {
+                activePtIdx = idx;
+                dragBoxStart = { x: clientX, y: clientY, type: type };
+                startCropPoints = JSON.parse(JSON.stringify(cropPoints));
+                if (type === 'pt' && cropMode === 'A') loupeActive = true;
                 
-                box.addEventListener('touchstart', (e) => {
-                    e.preventDefault();
-                    if (!isBoxSelected) {
-                        isBoxSelected = true;
-                        updateSVGUI();
-                        return;
-                    }
-                    
-                    if (e.touches.length === 1) {
-                        startBoxDrag(e);
-                    } else if (e.touches.length === 2) {
-                        activePtIdx = -1;
-                        dragBoxStart = null;
-                        const t1 = e.touches[0], t2 = e.touches[1];
-                        boxPinchStartDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
-                        boxPinchStartPts = JSON.parse(JSON.stringify(cropPoints));
-                        
-                        window.addEventListener('touchmove', handleBoxPinch, {passive: false});
-                        window.addEventListener('touchend', endBoxPinch);
-                    }
-                }, {passive: false});
+                if (isAspectLocked) {
+                    const w = Math.hypot(cropPoints[0].x - cropPoints[1].x, cropPoints[0].y - cropPoints[1].y);
+                    const h = Math.hypot(cropPoints[1].x - cropPoints[2].x, cropPoints[1].y - cropPoints[2].y);
+                    interactionStartRatio = w / h;
+                }
+            } else if (type === 'box') {
+                dragBoxStart = { x: clientX, y: clientY, type: 'box' };
+                startCropPoints = JSON.parse(JSON.stringify(cropPoints));
             }
-        }, 100);
+            
+            updateSVGUI(clientX, clientY);
+            window.addEventListener('mousemove', handleInteractionMove);
+            window.addEventListener('mouseup', endInteraction);
+            window.addEventListener('touchmove', handleInteractionMove, {passive: false});
+            window.addEventListener('touchend', endInteraction);
+        }
 
-        function handleBoxPinch(e) {
-            if (e.touches.length === 2 && isBoxSelected) {
-                e.preventDefault();
+        function handleInteractionMove(e) {
+            e.preventDefault && e.preventDefault();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            const imgPt = screenToImage(clientX, clientY);
+            
+            if (cropMode === 'B' && e.touches && e.touches.length === 2 && boxPinchStartDist > 0) {
+                // Mode B: Pinch to Zoom (Scales points relative to center, creating window zoom effect)
                 const t1 = e.touches[0], t2 = e.touches[1];
                 const newDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
-                const scale = newDist / boxPinchStartDist;
-                
+                const scale = boxPinchStartDist / newDist; // Inverse scale for viewport effect
                 let cx = 0, cy = 0;
                 boxPinchStartPts.forEach(p => { cx += p.x; cy += p.y; });
                 cx /= 4; cy /= 4;
                 
-                let canScale = true;
-                const newPts = boxPinchStartPts.map(p => {
-                    const nx = cx + (p.x - cx) * scale;
-                    const ny = cy + (p.y - cy) * scale;
-                    if (nx < 0 || nx > cropImg.naturalWidth || ny < 0 || ny > cropImg.naturalHeight) canScale = false;
-                    return { x: nx, y: ny };
-                });
-                
-                if (canScale) {
+                const newPts = boxPinchStartPts.map(p => ({ x: cx + (p.x - cx) * scale, y: cy + (p.y - cy) * scale }));
+                if (newPts.every(p => p.x >= 0 && p.x <= cropImg.naturalWidth && p.y >= 0 && p.y <= cropImg.naturalHeight)) {
                     cropPoints = newPts;
-                    updateSVGUI();
+                }
+            } else if (dragBoxStart) {
+                if (dragBoxStart.type === 'pt') {
+                    // Mode A: Corner Drag
+                    let nx = Math.max(0, Math.min(cropImg.naturalWidth, imgPt.x));
+                    let ny = Math.max(0, Math.min(cropImg.naturalHeight, imgPt.y));
+                    
+                    if (isAspectLocked) {
+                        const oppIdx = (activePtIdx + 2) % 4;
+                        const opp = startCropPoints[oppIdx];
+                        const dx = nx - opp.x;
+                        const dy = dx / interactionStartRatio * Math.sign(ny - opp.y) * Math.sign(nx - opp.x);
+                        ny = opp.y + dy;
+                        
+                        cropPoints[activePtIdx] = { x: nx, y: ny };
+                        cropPoints[(activePtIdx + 1) % 4] = { x: activePtIdx % 2 === 0 ? opp.x : nx, y: activePtIdx % 2 === 0 ? ny : opp.y };
+                        cropPoints[(activePtIdx + 3) % 4] = { x: activePtIdx % 2 === 0 ? nx : opp.x, y: activePtIdx % 2 === 0 ? opp.y : ny };
+                    } else {
+                        cropPoints[activePtIdx] = { x: nx, y: ny };
+                    }
+                } else if (dragBoxStart.type === 'edge') {
+                    // Mode A: Edge Drag (Translates two points)
+                    const startPt = screenToImage(dragBoxStart.x, dragBoxStart.y);
+                    const dx = imgPt.x - startPt.x;
+                    const dy = imgPt.y - startPt.y;
+                    const p1 = startCropPoints[activePtIdx], p2 = startCropPoints[(activePtIdx + 1) % 4];
+                    cropPoints[activePtIdx] = { x: p1.x + dx, y: p1.y + dy };
+                    cropPoints[(activePtIdx + 1) % 4] = { x: p2.x + dx, y: p2.y + dy };
+                } else if (dragBoxStart.type === 'box') {
+                    // Mode B: Pan Viewport (Translates all points)
+                    const startPt = screenToImage(dragBoxStart.x, dragBoxStart.y);
+                    const dx = startPt.x - imgPt.x; // Inverse translation
+                    const dy = startPt.y - imgPt.y;
+                    
+                    const newPts = startCropPoints.map(p => ({ x: p.x + dx, y: p.y + dy }));
+                    if (newPts.every(p => p.x >= 0 && p.x <= cropImg.naturalWidth && p.y >= 0 && p.y <= cropImg.naturalHeight)) {
+                        cropPoints = newPts;
+                    }
                 }
             }
+            updateSVGUI(clientX, clientY);
         }
 
-        function endBoxPinch() {
-            window.removeEventListener('touchmove', handleBoxPinch);
-            window.removeEventListener('touchend', endBoxPinch);
+        function endInteraction() {
+            loupeActive = false;
+            activePtIdx = -1;
+            dragBoxStart = null;
+            boxPinchStartDist = 0;
+            updateSVGUI();
+            autoCenterCrop(); // Trigger the Magic Tween!
+            window.removeEventListener('mousemove', handleInteractionMove);
+            window.removeEventListener('mouseup', endInteraction);
+            window.removeEventListener('touchmove', handleInteractionMove);
+            window.removeEventListener('touchend', endInteraction);
         }
+
+        setTimeout(() => {
+            document.getElementById('cropBox').addEventListener('mousedown', (e) => { cropMode = cropMode === 'A' ? 'B' : 'A'; updateSVGUI(); if(cropMode === 'B') startInteraction(e, 'box'); });
+            document.getElementById('cropBox').addEventListener('touchstart', (e) => { 
+                if (e.touches.length === 1) { cropMode = cropMode === 'A' ? 'B' : 'A'; updateSVGUI(); if(cropMode === 'B') startInteraction(e, 'box'); }
+                else if (e.touches.length === 2 && cropMode === 'B') {
+                    e.preventDefault();
+                    boxPinchStartDist = Math.hypot(e.touches[1].clientX - e.touches[0].clientX, e.touches[1].clientY - e.touches[0].clientY);
+                    boxPinchStartPts = JSON.parse(JSON.stringify(cropPoints));
+                    window.addEventListener('touchmove', handleInteractionMove, {passive: false});
+                    window.addEventListener('touchend', endInteraction);
+                }
+            }, {passive: false});
+            
+            for(let i=0; i<4; i++) {
+                const pt = document.getElementById(`pt${i}`);
+                if(pt) {
+                    pt.addEventListener('mousedown', (e) => startInteraction(e, 'pt', i));
+                    pt.addEventListener('touchstart', (e) => startInteraction(e, 'pt', i), {passive: false});
+                }
+                const edge = document.getElementById(`edge${i}`);
+                if(edge) {
+                    edge.addEventListener('mousedown', (e) => startInteraction(e, 'edge', i));
+                    edge.addEventListener('touchstart', (e) => startInteraction(e, 'edge', i), {passive: false});
+                }
+            }
+        }, 100);
 
         document.getElementById('rotate90Btn').addEventListener('click', () => {
             const offscreen = document.createElement('canvas');
