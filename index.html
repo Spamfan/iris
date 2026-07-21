@@ -1455,16 +1455,6 @@
             startCamera();
         });
 
-        function imageToScreen(ix, iy) {
-            const scale = cropContainer.clientWidth / cropImg.naturalWidth;
-            return { x: ix * scale, y: iy * scale };
-        }
-
-        function screenToImage(sx, sy) {
-            const scale = cropImg.naturalWidth / cropContainer.clientWidth;
-            return { x: sx * scale, y: sy * scale };
-        }
-
         let cropMode = 'A'; // A = Edit/Perspective, B = Viewport Pan/Zoom
         let isAspectLocked = false;
         let cwTx = 0, cwTy = 0, cwScale = 1;
