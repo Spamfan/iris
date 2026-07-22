@@ -217,21 +217,22 @@
         .crop-container {
             position: relative; width: 100%; max-width: 400px; 
             border: 3px solid #3b82f6; border-radius: 10px; overflow: hidden; background: #222; margin-bottom: 20px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; -webkit-tap-highlight-color: transparent; outline: none;
         }
         #cropImage { width: 100%; height: auto; display: block; }
         #cropWrapper { position: absolute; top: 0; left: 0; transform-origin: 0 0; }
-        #cropSvg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
+        #cropSvg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; -webkit-tap-highlight-color: transparent; outline: none; }
         #cropOverlay { fill: rgba(0,0,0,0.6); pointer-events: auto; }
-        #cropBox { fill: transparent; pointer-events: auto; cursor: pointer; }
-        .edge-handle { stroke: #ffffff; stroke-width: 6px; stroke-linecap: round; pointer-events: auto; cursor: grab; }
+        #cropBox { fill: transparent; pointer-events: auto; cursor: pointer; -webkit-tap-highlight-color: transparent; outline: none; }
+        .edge-handle { stroke: #ffffff; stroke-width: 3px; stroke-linecap: round; pointer-events: auto; cursor: grab; }
         .pt { fill: rgba(59, 130, 246, 0.6); stroke: #ffffff; stroke-width: 2px; pointer-events: auto; cursor: grab; }
         .pt:active { cursor: grabbing; }
         #loupe { position: absolute; width: 100px; height: 100px; border: 3px solid #fff; border-radius: 50%; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.5); pointer-events: none; z-index: 100; display: none; background: #000; }
-        .loupe-crosshair { position: absolute; top: 50%; left: 50%; width: 20px; height: 20px; transform: translate(-50%, -50%); pointer-events: none; }
-        .loupe-crosshair::before, .loupe-crosshair::after { content: ''; position: absolute; background: #22c55e; }
-        .loupe-crosshair::before { top: 9px; left: 0; width: 20px; height: 2px; }
-        .loupe-crosshair::after { top: 0; left: 9px; width: 2px; height: 20px; }
+        .loupe-crosshair { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+        .loupe-crosshair::before, .loupe-crosshair::after { content: ''; position: absolute; background: rgba(0,0,0,0.5); }
+        .loupe-crosshair::before { top: 50%; left: 0; width: 100%; height: 1px; }
+        .loupe-crosshair::after { top: 0; left: 50%; width: 1px; height: 100%; }
+        .loupe-crosshair-circle { position: absolute; top: 50%; left: 50%; width: 24px; height: 24px; transform: translate(-50%, -50%); border: 1px solid rgba(255,255,255,0.7); border-radius: 50%; box-sizing: border-box; }
         #confirmCropBtn { background-color: #22c55e; color: white; padding: 15px; width: 100%; max-width: 400px; font-size: 1.2rem; }
     </style>
 </head>
@@ -243,7 +244,7 @@
                 <svg class="icon" viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
                 <span id="settingsWarningBadge">!</span>
             </button>
-            <div id="versionLabel">v0.1.5</div>
+            <div id="versionLabel">v0.1.6</div>
         </div>
         <button id="homeBtn" title="Home">
             <svg class="icon" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
@@ -401,15 +402,15 @@
                     <line class="edge-handle" id="edge1"></line>
                     <line class="edge-handle" id="edge2"></line>
                     <line class="edge-handle" id="edge3"></line>
-                    <circle class="pt" id="pt0" cx="0" cy="0" r="16"></circle>
-                    <circle class="pt" id="pt1" cx="0" cy="0" r="16"></circle>
-                    <circle class="pt" id="pt2" cx="0" cy="0" r="16"></circle>
-                    <circle class="pt" id="pt3" cx="0" cy="0" r="16"></circle>
+                    <circle class="pt" id="pt0" cx="0" cy="0" r="8"></circle>
+                    <circle class="pt" id="pt1" cx="0" cy="0" r="8"></circle>
+                    <circle class="pt" id="pt2" cx="0" cy="0" r="8"></circle>
+                    <circle class="pt" id="pt3" cx="0" cy="0" r="8"></circle>
                 </svg>
             </div>
             <div id="loupe">
                 <canvas id="loupeCanvas" width="100" height="100"></canvas>
-                <div class="loupe-crosshair"></div>
+                <div class="loupe-crosshair"><div class="loupe-crosshair-circle"></div></div>
             </div>
         </div>
         <button id="rotate90Btn" class="btn-secondary" style="padding: 10px; margin-bottom: 20px; width: 100%; max-width: 400px; font-weight: bold; border-radius: 8px;">⟳ Rotate 90°</button>
@@ -1501,7 +1502,7 @@
                 const dx = pB.x - pA.x, dy = pB.y - pA.y;
                 const len = Math.hypot(dx, dy);
                 const ux = dx/len, uy = dy/len;
-                const hLen = 25; // 50px line
+                const hLen = 15; // 30px line
                 
                 const edge = document.getElementById(`edge${i}`);
                 if(edge) {
@@ -1522,7 +1523,7 @@
             if(box) {
                 box.setAttribute('points', `${pts[0].x},${pts[0].y} ${pts[1].x},${pts[1].y} ${pts[2].x},${pts[2].y} ${pts[3].x},${pts[3].y}`);
                 if (cropMode === 'B') {
-                    box.setAttribute('stroke', '#22c55e'); box.setAttribute('stroke-width', '3'); box.setAttribute('stroke-dasharray', '5,5');
+                    box.setAttribute('stroke', '#22c55e'); box.setAttribute('stroke-width', '2'); box.setAttribute('stroke-dasharray', '4,4');
                 } else {
                     box.setAttribute('stroke', 'transparent'); box.removeAttribute('stroke-width'); box.removeAttribute('stroke-dasharray');
                 }
@@ -1645,17 +1646,16 @@
             
             if (type === 'pt' || type === 'edge') {
                 activePtIdx = idx;
-                dragBoxStart = { x: clientX, y: clientY, type: type };
+                dragBoxStart = { x: clientX, y: clientY, type: type, time: Date.now() };
                 startCropPoints = JSON.parse(JSON.stringify(cropPoints));
                 if (type === 'pt' && cropMode === 'A') loupeActive = true;
                 
-                if (isAspectLocked) {
-                    const w = Math.hypot(cropPoints[0].x - cropPoints[1].x, cropPoints[0].y - cropPoints[1].y);
-                    const h = Math.hypot(cropPoints[1].x - cropPoints[2].x, cropPoints[1].y - cropPoints[2].y);
-                    interactionStartRatio = w / h;
+                if (isAspectLocked && type === 'pt') {
+                    const oppIdx = (activePtIdx + 2) % 4;
+                    interactionStartRatio = Math.hypot(cropPoints[activePtIdx].x - cropPoints[oppIdx].x, cropPoints[activePtIdx].y - cropPoints[oppIdx].y);
                 }
             } else if (type === 'box') {
-                dragBoxStart = { x: clientX, y: clientY, type: 'box' };
+                dragBoxStart = { x: clientX, y: clientY, type: 'box', time: Date.now() };
                 startCropPoints = JSON.parse(JSON.stringify(cropPoints));
             }
             
@@ -1694,13 +1694,17 @@
                     if (isAspectLocked) {
                         const oppIdx = (activePtIdx + 2) % 4;
                         const opp = startCropPoints[oppIdx];
-                        const dx = nx - opp.x;
-                        const dy = dx / interactionStartRatio * Math.sign(ny - opp.y) * Math.sign(nx - opp.x);
-                        ny = opp.y + dy;
+                        const newDist = Math.hypot(nx - opp.x, ny - opp.y);
+                        const scaleMultiplier = interactionStartRatio > 0 ? (newDist / interactionStartRatio) : 1;
                         
-                        cropPoints[activePtIdx] = { x: nx, y: ny };
-                        cropPoints[(activePtIdx + 1) % 4] = { x: activePtIdx % 2 === 0 ? opp.x : nx, y: activePtIdx % 2 === 0 ? ny : opp.y };
-                        cropPoints[(activePtIdx + 3) % 4] = { x: activePtIdx % 2 === 0 ? nx : opp.x, y: activePtIdx % 2 === 0 ? opp.y : ny };
+                        const newPts = startCropPoints.map(p => ({
+                            x: opp.x + (p.x - opp.x) * scaleMultiplier,
+                            y: opp.y + (p.y - opp.y) * scaleMultiplier
+                        }));
+                        
+                        if (newPts.every(p => p.x >= 0 && p.x <= cropImg.naturalWidth && p.y >= 0 && p.y <= cropImg.naturalHeight)) {
+                            cropPoints = newPts;
+                        }
                     } else {
                         cropPoints[activePtIdx] = { x: nx, y: ny };
                     }
@@ -1712,11 +1716,11 @@
                     const p1 = startCropPoints[activePtIdx], p2 = startCropPoints[(activePtIdx + 1) % 4];
                     cropPoints[activePtIdx] = { x: p1.x + dx, y: p1.y + dy };
                     cropPoints[(activePtIdx + 1) % 4] = { x: p2.x + dx, y: p2.y + dy };
-                } else if (dragBoxStart.type === 'box') {
+                } else if (dragBoxStart.type === 'box' && cropMode === 'B') {
                     // Mode B: Pan Viewport (Translates all points)
                     const startPt = screenToImage(dragBoxStart.x, dragBoxStart.y);
-                    const dx = startPt.x - imgPt.x; // Inverse translation
-                    const dy = startPt.y - imgPt.y;
+                    const dx = imgPt.x - startPt.x; // 1:1 true translation
+                    const dy = imgPt.y - startPt.y;
                     
                     const newPts = startCropPoints.map(p => ({ x: p.x + dx, y: p.y + dy }));
                     if (newPts.every(p => p.x >= 0 && p.x <= cropImg.naturalWidth && p.y >= 0 && p.y <= cropImg.naturalHeight)) {
@@ -1727,7 +1731,16 @@
             updateSVGUI(clientX, clientY);
         }
 
-        function endInteraction() {
+        function endInteraction(e) {
+            if (dragBoxStart && dragBoxStart.type === 'box' && e) {
+                const clientX = e.changedTouches ? e.changedTouches[0].clientX : (e.clientX || dragBoxStart.x);
+                const clientY = e.changedTouches ? e.changedTouches[0].clientY : (e.clientY || dragBoxStart.y);
+                const dist = Math.hypot(clientX - dragBoxStart.x, clientY - dragBoxStart.y);
+                const time = Date.now() - dragBoxStart.time;
+                if (dist < 10 && time < 300) {
+                    cropMode = cropMode === 'A' ? 'B' : 'A';
+                }
+            }
             loupeActive = false;
             activePtIdx = -1;
             dragBoxStart = null;
@@ -1741,9 +1754,9 @@
         }
 
         setTimeout(() => {
-            document.getElementById('cropBox').addEventListener('mousedown', (e) => { cropMode = cropMode === 'A' ? 'B' : 'A'; updateSVGUI(); if(cropMode === 'B') startInteraction(e, 'box'); });
+            document.getElementById('cropBox').addEventListener('mousedown', (e) => { startInteraction(e, 'box'); });
             document.getElementById('cropBox').addEventListener('touchstart', (e) => { 
-                if (e.touches.length === 1) { cropMode = cropMode === 'A' ? 'B' : 'A'; updateSVGUI(); if(cropMode === 'B') startInteraction(e, 'box'); }
+                if (e.touches.length === 1) { startInteraction(e, 'box'); }
                 else if (e.touches.length === 2 && cropMode === 'B') {
                     e.preventDefault();
                     boxPinchStartDist = Math.hypot(e.touches[1].clientX - e.touches[0].clientX, e.touches[1].clientY - e.touches[0].clientY);
